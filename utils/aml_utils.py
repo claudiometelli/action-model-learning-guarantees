@@ -156,7 +156,7 @@ def action_intersection(state: State, action: Action, action_parameters: List[st
     parameters_pairing = {k: v for k, v in zip(action_parameters, sorted_params)}
 
     # Step 1
-    for predicate_name, predicates in state.items():
+    for predicate_name, predicates in state.state_predicates.items():
         substate[predicate_name] = set()
         for predicate in predicates:
             # Check if all objects involved in the grounded predicate are part of the action's grounded parameters.
@@ -180,8 +180,9 @@ def action_intersection(state: State, action: Action, action_parameters: List[st
             grounded = GroundedPredicate(predicate_name, predicate_signature, obj_mapping, predicate.is_positive)
             parametrized_substate[predicate_name].add(grounded)
     
-    for predicate_name, predicates in action_space.items():
-        action_result[predicate_name] = action_space[predicate_name].intersection(parametrized_substate[predicate_name])
+    # Step 3
+    for predicate_name, predicates in action_space.state_predicates.items():
+        action_result[predicate_name] = action_space.state_predicates[predicate_name].intersection(parametrized_substate[predicate_name])
     
     result = State(action_result, None)
     return result
