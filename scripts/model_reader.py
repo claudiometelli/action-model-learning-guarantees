@@ -21,8 +21,15 @@ def print_model_domain(domain):
     print('\n## Actions: .........')
     for action, value in domain.actions.items():
         print(f'- Action: {action}')
+        print(type(value))
+        print(value)
+        print(value.signature.keys())
         print(f'  Preconditions: {value.preconditions}')
-        print(f'  Effects: {value.discrete_effects}')
+        print(value.preconditions.root.binary_operator)
+        for operand in value.preconditions.root.operands:
+            print(f'Operand type: {type(operand).__name__}. Operand: {operand}. {operand.__dict__}')
+        print(value.__dict__)
+        # Action: name, signature
         break
 
 
@@ -68,8 +75,8 @@ def grounding(domain, problem):
         
         predicate_param_objs[predicate] = list(itertools.product(*predicate_param_objs[predicate].values()))
     
-    # for k, v in predicate_param_objs.items():
-    #     print(f'{k}: {v}; {len(v)}')
+    for k, v in predicate_param_objs.items():
+        print(f'{k}: {v}; {len(v)}')
 
 
         
@@ -87,5 +94,5 @@ if __name__ == '__main__':
     print_model_domain(domain)
     print('\n\n')
     print_model_problem(problem)
-    print('\n\n')
+    # print('\n\n')
     grounding(domain, problem)
