@@ -1,15 +1,16 @@
 import csv
 import json
-from typing import Dict, List, Set, Tuple
+from typing import List, Tuple
 from pddl_plus_parser.lisp_parsers.domain_parser import DomainParser
 from pddl_plus_parser.models.pddl_predicate import GroundedPredicate
+from pddl_plus_parser.models.pddl_state import State
 
 class DatasetReader:
 
     def __init__(self, domain_path: str):
         self.domain = DomainParser(domain_path).parse_domain()
 
-    def __read_state(self, state_str: str) -> Dict[str, Set[GroundedPredicate]]:
+    def __read_state(self, state_str: str) -> State:
         """
         Read a dataset state-string and transform it in a state.
 
@@ -50,24 +51,22 @@ class DatasetReader:
                 
                 state[predicate.name].add(predicate)
             
+            state = State(state, None)
             return state
             
         except (json.JSONDecodeError, ValueError) as e:
             return None
 
 
-    def load_dataset(self, file_path: str) -> List[
-        Tuple[
-            Dict[str, Set[GroundedPredicate]],
-            str,
-            List[str],
-            bool,
-            Dict[str, Set[GroundedPredicate]]
-        ]
-    ]:
+    def load_dataset(self, file_path: str) -> List[Tuple[State, str, List[str], bool, State]]:
         """
         Load data from CSV file.
         Output format is:
+        State - s
+        str - string that represents the action
+        List[str] - action parameters
+        bool - action result
+        State - New state s' after the action effects; if bool is False, this is None
         
         Args:
             file_path: file path of CSV file,
@@ -75,6 +74,7 @@ class DatasetReader:
             problem: instance of PDDL problem.
             
         Returns:
+            A list of examples
             
         """
         
@@ -84,14 +84,14 @@ class DatasetReader:
             try:
                 next(reader) 
             except StopIteration:
-                print("File is empty.")
+                print('File is empty.')
                 return []
                 
             transformed_data = []
             
             for row in reader:
                 if len(row) != 5:
-                    print(f"Skipped row due to incorrect format: {row}")
+                    print(f'Skipped row due to incorrect format: {row}')
                     continue
 
                 state_str, action_name, params_str, result_str, next_str = row
@@ -106,12 +106,12 @@ class DatasetReader:
                 try:
                     params_list = json.loads(params_str)
                 except json.JSONDecodeError as e:
-                    print(f"Parsing error in JSON: {e} at row: {row}")
+                    print(f'Parsing error in JSON: {e} at row: {row}')
                     continue
 
                 # Column 4: action result
                 result = False 
-                if result_str.lower() == "true":
+                if result_str.lower() == 'true':
                     result = True
 
                 next_state = None
