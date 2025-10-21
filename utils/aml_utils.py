@@ -16,7 +16,7 @@ def state_to_str(state: State):
         result += predicate_name + ':\n'
         for predicate in predicate_list:
             result += f'- {predicate}\n'
-        result += '\n'
+    result = result[:-1]
     return result
 
 def get_sorted_predicate_params(predicate: Predicate) -> List[str]:
@@ -25,6 +25,14 @@ def get_sorted_predicate_params(predicate: Predicate) -> List[str]:
     sorted_indices = sorted([index for index in params_indices_dict.keys()])
     sorted_params = [params_indices_dict[index] for index in sorted_indices]
     return sorted_params
+
+# def get_sorted_predicate_groundings(predicate: GroundedPredicate) -> List[str]:
+#     """Function that returns predicate groundings as a list, mantaining the same order as declaration"""
+#     params_indices_dict = {str(predicate).index(param): param for param in predicate.object_mapping.values()}
+#     sorted_indices = sorted([index for index in params_indices_dict.keys()])
+#     sorted_params = [params_indices_dict[index] for index in sorted_indices]
+#     return sorted_params
+
 
 def get_sorted_action_params(action: Action) -> List[str]:
     """Function that returns action parameters as a list, mantaining the same order as declaration"""
@@ -129,6 +137,7 @@ def get_action_space(domain: Domain, action: str) -> State:
 def action_intersection(state: State, action: Action, action_parameters: List[str], action_space: State, domain: Domain) -> State:
     """
     Computes the intersection between a concrete problem state and the symbolic action space.
+    It corresponds to ULP operations in the article
     The process involves three main steps:
     1. Filter the concrete State to keep only literals involving the action's specific grounded objects.
     2. Translate these filtered concrete literals into symbolic literals using the action's parameter names.
@@ -186,3 +195,140 @@ def action_intersection(state: State, action: Action, action_parameters: List[st
     
     result = State(action_result, None)
     return result
+
+def is_hypotesis_subset(hypotesis: State, parametrized_state: Dict[str, Set[GroundedPredicate]]):
+    if hypotesis.state_predicates is None:
+        return True
+    is_subset = True
+    for predicate_name, predicates in hypotesis.state_predicates.items():
+        if not predicates.issubset(parametrized_state[predicate_name]):
+            is_subset = False
+            break
+    return is_subset
+
+def expand_hypotesis(hypotesis: State, parametrized_state: Dict[str, Set[GroundedPredicate]], action_space_lb: State) -> List[State]:
+    result = []
+    all_state_predicates: Set[GroundedPredicate] = set()
+    all_action_space_predicates: Set[GroundedPredicate] = set()
+
+    for predicates in parametrized_state.values():
+        all_state_predicates.update(predicates)
+    for predicates in action_space_lb.state_predicates.values():
+        all_action_space_predicates.update(predicates)
+
+    new_hypotesis = all_action_space_predicates.difference(all_state_predicates)
+    for h in new_hypotesis:
+        new_ub_element = None
+        if hypotesis.state_predicates is not None:
+            new_ub_element = hypotesis.copy()
+            if new_ub_element.state_predicates.get(h.name) is None:
+                new_ub_element.state_predicates[h.name] = set()
+            new_ub_element.state_predicates[h.name].add(h)
+        else:
+            singleton_hypotesis = set()
+            singleton_hypotesis.add(h)
+            ub_element_predicate = {h.name: singleton_hypotesis}
+            new_ub_element = State(ub_element_predicate, None)
+        
+        result.append(new_ub_element)
+    
+    return result
+
+def get_involved_parameters_substate(state: State, action_parameters: List[str]) -> Dict[str, Set[GroundedPredicate]]:
+    substate: Dict[str, Set[GroundedPredicate]] = {}
+    for predicate_name, predicates in state.state_predicates.items():
+        substate[predicate_name] = set()
+        for predicate in predicates:
+            # Check if all objects involved in the grounded predicate are part of the action's grounded parameters.
+            involved = True
+            for p_ground in predicate.object_mapping.values():
+                if p_ground not in action_parameters:
+                    involved = False
+                    break
+            if involved:
+                substate[predicate_name].add(predicate)
+    return substate
+
+def get_parametrized_substate(substate: Dict[str, Set[GroundedPredicate]], action: Action, action_parameters: List[str], domain: Domain) -> Dict[str, Set[GroundedPredicate]]:
+    parametrized_substate: Dict[str, Set[GroundedPredicate]] = {}
+    # This sorted list is necessary for correct object mapping, using zip
+    sorted_params = get_sorted_action_params(action)
+    parameters_pairing = {k: v for k, v in zip(action_parameters, sorted_params)}
+    
+    for predicate_name, predicates in substate.items():
+        parametrized_substate[predicate_name] = set()
+
+        predicate_signature = domain.predicates[predicate_name].signature
+        for predicate in predicates:
+            obj_mapping = {}
+            for param, ground in predicate.object_mapping.items():
+                obj_mapping[param] = parameters_pairing[ground]
+            grounded = GroundedPredicate(predicate_name, predicate_signature, obj_mapping, predicate.is_positive)
+            parametrized_substate[predicate_name].add(grounded)
+    
+    return parametrized_substate
+
+def get_parametrized_substate_fixed(substate: Dict[str, Set[GroundedPredicate]], action: Action, action_parameters: List[str], domain: Domain) -> Dict[str, Set[GroundedPredicate]]:
+    """
+    TODO sistemare il caso per cui ad esempio si ha unstack(c,c)
+    """
+    parametrized_substate: Dict[str, Set[GroundedPredicate]] = {}
+    
+    sorted_params = get_sorted_action_params(action)
+    grounded_to_symbolic_map: List[Tuple[str, str]] = list(zip(action_parameters, sorted_params))
+    
+    print(f"Map symbol-position: {grounded_to_symbolic_map}")
+    
+    for predicate_name, predicates in substate.items():
+        parametrized_substate[predicate_name] = set()
+        predicate_signature = domain.predicates[predicate_name].signature
+        sorted_predicate_params = get_sorted_predicate_params(domain.predicates[predicate_name])
+
+        for predicate in predicates:
+            print(f'-- analysis of predicate: {predicate}')
+            obj_mapping = {}
+            predicate_params = sorted_predicate_params.copy()
+            predicate_groundings = [predicate.object_mapping[param] for param in predicate_params]
+            print(predicate_params, predicate_groundings)
+
+            consumed_counts = {p: 0 for p in action_parameters}
+            
+            for param_name, ground_obj in zip(predicate_params, predicate_groundings):
+                
+                found = False
+                for i, (map_ground, map_symbol) in enumerate(grounded_to_symbolic_map):
+
+                    if map_ground == ground_obj and consumed_counts[ground_obj] == i - sum(consumed_counts.values()):
+                        obj_mapping[param_name] = map_symbol
+                        consumed_counts[ground_obj] += 1
+                        found = True
+                        break
+                
+                if not found:
+                    # In teoria non dovrebbe mai succedere se substate è stato filtrato correttamente
+                    raise ValueError("Errore logico: Impossibile trovare mappatura per un oggetto filtrato.")
+
+
+            # VECCHIO LOGICA NON FUNZIONANTE:
+            # for param, ground in predicate.object_mapping.items():
+            #     # Questo fallisce con ripetizioni come 'c' in on(c, c)
+            #     obj_mapping[param] = parameters_pairing[ground] 
+
+            grounded = GroundedPredicate(predicate_name, predicate_signature, obj_mapping, predicate.is_positive)
+            parametrized_substate[predicate_name].add(grounded)
+    
+    return parametrized_substate
+
+def UUP(state: State, action: Action, action_parameters: List[str], action_space_lb: State, action_space_ub: List[State], domain: Domain):
+    substate: Dict[str, Set[GroundedPredicate]] = get_involved_parameters_substate(state, action_parameters)
+    # print(f'PARAMETERIZING SUBSTATE of:\n {state_to_str(State(substate, None))}')
+    parametrized_substate: Dict[str, Set[GroundedPredicate]] = get_parametrized_substate(substate, action, action_parameters, domain)
+    new_action_space_ub = action_space_ub.copy()
+
+    for hypotesis in action_space_ub:
+        if is_hypotesis_subset(hypotesis, parametrized_substate):
+            expanded_hypotesis_set = expand_hypotesis(hypotesis, parametrized_substate, action_space_lb)
+            new_action_space_ub.remove(hypotesis)
+            new_action_space_ub.extend(expanded_hypotesis_set)
+    
+    return new_action_space_ub
