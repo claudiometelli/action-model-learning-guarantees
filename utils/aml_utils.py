@@ -133,6 +133,74 @@ def get_action_space(domain: Domain, action: str) -> State:
     result = State(action_space, None)
     return result
 
+def get_involved_parameters_substate(state: State, action_parameters: List[str]) -> Dict[str, Set[GroundedPredicate]]:
+    """
+    Filters a complete state to create a substate containing only those grounded literals
+    that exclusively involve the specific objects used in the current action instance.
+    This substate represents the portion of the environment relevant for the prediction of the action's preconditions and effects.
+
+    Args:
+        state: The current concrete state of the problem.
+        action_parameters: The list of concrete objects grounding the action.
+
+    Returns:
+        A dictionary mapping predicate names to the filtered set of GroundedPredicates that only involve the objects from action parameters.
+    """
+    substate: Dict[str, Set[GroundedPredicate]] = {}
+    for predicate_name, predicates in state.state_predicates.items():
+        substate[predicate_name] = set()
+        for predicate in predicates:
+            # Check if all objects involved in the grounded predicate are part of the action's grounded parameters.
+            involved = True
+            # If any object used by the predicate is not one of the action's parameters, the predicate is irrelevant.
+            for p_ground in predicate.object_mapping.values():
+                if p_ground not in action_parameters:
+                    involved = False
+                    break
+            if involved:
+                substate[predicate_name].add(predicate)
+    return substate
+
+def get_parametrized_substate(
+    substate: Dict[str, Set[GroundedPredicate]],
+    action: Action,
+    action_parameters: List[str],
+    domain: Domain
+) -> Dict[str, Set[GroundedPredicate]]:
+    """
+    Translates a filtered substate (the substate of literals involving action's objects) into a symbolic substate,
+    where concrete objects are replaced by the action's parameter names.
+
+    NOTE: This simplified version does not correctly handle cases where the same 
+    concrete object is repeated in action_parameters (e.g., stack(c, c)).
+
+    Args:
+        substate: The filtered concrete state.
+        action: The action object.
+        action_parameters: The list of concrete objects grounding the action.
+        domain: The PDDL Domain object (to retrieve predicate signatures).
+
+    Returns:
+        A dictionary containing the set of symbolic GroundedPredicates.
+    """
+    parametrized_substate: Dict[str, Set[GroundedPredicate]] = {}
+    # This sorted list is necessary for correct object mapping, using zip
+    sorted_params = get_sorted_action_params(action)
+    parameters_pairing = {k: v for k, v in zip(action_parameters, sorted_params)}
+    
+    for predicate_name, predicates in substate.items():
+        parametrized_substate[predicate_name] = set()
+
+        predicate_signature = domain.predicates[predicate_name].signature
+        for predicate in predicates:
+            obj_mapping = {}
+            for param, ground in predicate.object_mapping.items():
+                obj_mapping[param] = parameters_pairing[ground]
+            grounded = GroundedPredicate(predicate_name, predicate_signature, obj_mapping, predicate.is_positive)
+            parametrized_substate[predicate_name].add(grounded)
+    
+    return parametrized_substate
+
 
 def action_intersection(state: State, action: Action, action_parameters: List[str], action_space: State, domain: Domain) -> State:
     """
@@ -144,15 +212,14 @@ def action_intersection(state: State, action: Action, action_parameters: List[st
     3. Intersect the translated literals with the full symbolic action Space.
 
     Args:
-        state: The current concrete State of the problem.
-        action: The Action object (used to get parameter mapping).
-        action_parameters: The list of concrete objects grounding the action (e.g., ['b1', 't']).
-        action_space: The State object representing all possible symbolic literals for the action.
+        state: The current concrete state of the problem.
+        action: The action object.
+        action_parameters: The list of concrete objects grounding the action.
+        action_space: The state object representing all possible symbolic literals for the action.
         domain: The PDDL Domain object.
 
     Returns:
-        A State object containing the set of symbolic literals from the Action Space 
-        that are TRUE (or FALSE) in the current concrete State.
+        A state object containing the set of symbolic literals from the action space that are either true or false in the current state.
     """
     # State representing step 1
     substate: Dict[str, Set[GroundedPredicate]] = {}
@@ -234,40 +301,6 @@ def expand_hypotesis(hypotesis: State, parametrized_state: Dict[str, Set[Grounde
     
     return result
 
-def get_involved_parameters_substate(state: State, action_parameters: List[str]) -> Dict[str, Set[GroundedPredicate]]:
-    substate: Dict[str, Set[GroundedPredicate]] = {}
-    for predicate_name, predicates in state.state_predicates.items():
-        substate[predicate_name] = set()
-        for predicate in predicates:
-            # Check if all objects involved in the grounded predicate are part of the action's grounded parameters.
-            involved = True
-            for p_ground in predicate.object_mapping.values():
-                if p_ground not in action_parameters:
-                    involved = False
-                    break
-            if involved:
-                substate[predicate_name].add(predicate)
-    return substate
-
-def get_parametrized_substate(substate: Dict[str, Set[GroundedPredicate]], action: Action, action_parameters: List[str], domain: Domain) -> Dict[str, Set[GroundedPredicate]]:
-    parametrized_substate: Dict[str, Set[GroundedPredicate]] = {}
-    # This sorted list is necessary for correct object mapping, using zip
-    sorted_params = get_sorted_action_params(action)
-    parameters_pairing = {k: v for k, v in zip(action_parameters, sorted_params)}
-    
-    for predicate_name, predicates in substate.items():
-        parametrized_substate[predicate_name] = set()
-
-        predicate_signature = domain.predicates[predicate_name].signature
-        for predicate in predicates:
-            obj_mapping = {}
-            for param, ground in predicate.object_mapping.items():
-                obj_mapping[param] = parameters_pairing[ground]
-            grounded = GroundedPredicate(predicate_name, predicate_signature, obj_mapping, predicate.is_positive)
-            parametrized_substate[predicate_name].add(grounded)
-    
-    return parametrized_substate
-
 def get_parametrized_substate_fixed(substate: Dict[str, Set[GroundedPredicate]], action: Action, action_parameters: List[str], domain: Domain) -> Dict[str, Set[GroundedPredicate]]:
     """
     TODO sistemare il caso per cui ad esempio si ha unstack(c,c)
@@ -319,16 +352,81 @@ def get_parametrized_substate_fixed(substate: Dict[str, Set[GroundedPredicate]],
     
     return parametrized_substate
 
-def UUP(state: State, action: Action, action_parameters: List[str], action_space_lb: State, action_space_ub: List[State], domain: Domain):
-    substate: Dict[str, Set[GroundedPredicate]] = get_involved_parameters_substate(state, action_parameters)
-    # print(f'PARAMETERIZING SUBSTATE of:\n {state_to_str(State(substate, None))}')
-    parametrized_substate: Dict[str, Set[GroundedPredicate]] = get_parametrized_substate(substate, action, action_parameters, domain)
-    new_action_space_ub = action_space_ub.copy()
+def update_preconds_ub(state: State, action: Action, action_parameters: List[str], action_space_lb: State, action_space_ub: List[State], domain: Domain):
+    """
+    Updates upper bound of precondition hypotheses.
+    It corresponds to UUP operations in the article
+    The process involves three main steps:
+    1. Filter the concrete state to keep only literals involving the action's specific grounded objects.
+    2. Translate these filtered concrete literals into symbolic literals using the action's parameter names.
+    3. For each hypotesis keep it or expand it, following the article rules.
 
+    Args:
+        state: The current concrete state of the problem.
+        action: The action object.
+        action_parameters: The list of concrete objects grounding the action.
+        action_space_lb: The lower bound of preconditions.
+        action_space_ub: The upper bound of preconditions.
+        domain: The PDDL Domain object.
+
+    Returns:
+        A list of refined precondition hypotheses, which represents the updated upper bound of preconditions.
+    """
+
+    # Step 1
+    substate: Dict[str, Set[GroundedPredicate]] = get_involved_parameters_substate(state, action_parameters)
+    # Step 2
+    parametrized_substate: Dict[str, Set[GroundedPredicate]] = get_parametrized_substate(substate, action, action_parameters, domain)
+    
+    # Step 3
+    new_action_space_ub = action_space_ub.copy()
     for hypotesis in action_space_ub:
+        # If the current state is subset, the hypotesis is expanded
         if is_hypotesis_subset(hypotesis, parametrized_substate):
             expanded_hypotesis_set = expand_hypotesis(hypotesis, parametrized_substate, action_space_lb)
             new_action_space_ub.remove(hypotesis)
             new_action_space_ub.extend(expanded_hypotesis_set)
+        # Otherwise the hypotesis is kept as it is
     
     return new_action_space_ub
+
+def effect_union(state: State, next: State, action: Action, action_parameters: List[str], action_space_lb: State, domain: Domain) -> State:
+    """
+    Computes the union between lower bound of action effects and the observed effects derived from the state transition: state -> next.
+    This function identifies the actual changes caused by the action, translates them into symbolic literals, and adds them to the cumulative set of effects.
+
+    Args:
+        state: the state before the action was executed.
+        next: the state after the action was executed.
+        action: the action object.
+        action_parameters: the list of concrete objects used to ground the action.
+        action_space_lb: the current lower bound of the action's effects.
+        domain: The PDDL Domain object.
+
+    Returns:
+        A new State object representing the updated lower bound of the action's effects.
+    """
+
+    # Compute grounded effects (next \ state) and store
+    state_grounded_effects = {}
+    for predicate_name in next.state_predicates:
+        state_grounded_effects[predicate_name] = next.state_predicates[predicate_name].difference(state.state_predicates[predicate_name])
+    # Translate grounded effects to symbolic literals
+    parametrized_substate: Dict[str, Set[GroundedPredicate]] = get_parametrized_substate(state_grounded_effects, action, action_parameters, domain)
+
+    # Compute the union with the lower bound
+    result = None
+    # This condition occurs when the current lower bound is empty, it should be the first observed transition.
+    if action_space_lb.state_predicates is None:
+        result = State(parametrized_substate, None)
+    # Otherwise the lower bound is already initialized
+    else:
+        state_predicates = {}
+        for predicate_name in action_space_lb.state_predicates:
+            state_predicates[predicate_name] = action_space_lb.state_predicates[predicate_name].union(parametrized_substate[predicate_name])
+        result = State(state_predicates, None)
+    
+    return result
+
+
+
