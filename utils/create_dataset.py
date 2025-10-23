@@ -6,8 +6,12 @@ from unified_planning.io import PDDLReader
 from unified_planning.shortcuts import *
 
 get_environment().credits_stream = None
+
 domain_path = 'domains/blocksworld/domain.pddl'
-problem_path = 'domains/blocksworld/problem.pddl'
+problem_path = 'domains/blocksworld/problem_01.pddl'
+output_filename = 'domains/blocksworld/dataset_01.csv'
+
+csv_headers = ['state', 'action', 'action_parameters', 'result', 'next_state']
 reader = PDDLReader()
 problem = reader.parse_problem(domain_path, problem_path)
 
@@ -95,26 +99,6 @@ with SequentialSimulator(problem) as simulator:
         
         current_state = next_state
 
-# print('\nFIRST ELEMENT:')
-# state, action, params, result = dataset[0]
-# print('- State')
-# for fact, value in state._values.items():
-#     print(f'\t{fact} - {value}')
-# print(f'- Action: {action.name}')
-# print(f'- Objects: {params}')
-# print(f'- Result: {result}')
-
-# print('\nLAST ELEMENT:')
-# state, action, params, result = dataset[-3]
-# print('- State')
-# for fact, value in state._values.items():
-#     print(f'\t{fact} - {value}')
-# print(f'- Action: {action.name}')
-# print(f'- Objects: {params}')
-# print(f'- Result: {result}')
-
-output_filename = 'domains/blocksworld/dataset.csv'
-csv_headers = ['state', 'action', 'action_parameters', 'result', 'next_state']
 
 with open(output_filename, 'w', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=';')

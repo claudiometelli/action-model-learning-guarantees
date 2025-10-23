@@ -10,6 +10,8 @@ from pddl_plus_parser.models.pddl_state import State
 def state_to_str(state: State):
     """Function that represent a state as a string"""
     result = ''
+    if state.state_predicates is None:
+        return 'Empty State'
     for predicate_name, predicate_set in state.state_predicates.items():
         # sort elements in the predicate set
         predicate_list = sorted([str(p) for p in predicate_set])
@@ -94,7 +96,7 @@ def get_literals_space(domain: Domain, problem: Problem) -> State:
         
         predicates[predicate_name] = grounded_predicates
     # Return the literal space as a State object
-    result = State(predicates, None)
+    result = State(predicates, {})
     return result
 
 
@@ -130,7 +132,7 @@ def get_action_space(domain: Domain, action: str) -> State:
         action_space[predicate_name] = predicate_set
     
     # Return the action space as a State object
-    result = State(action_space, None)
+    result = State(action_space, {})
     return result
 
 def get_involved_parameters_substate(state: State, action_parameters: List[str]) -> Dict[str, Set[GroundedPredicate]]:
@@ -260,7 +262,7 @@ def action_intersection(state: State, action: Action, action_parameters: List[st
     for predicate_name, predicates in action_space.state_predicates.items():
         action_result[predicate_name] = action_space.state_predicates[predicate_name].intersection(parametrized_substate[predicate_name])
     
-    result = State(action_result, None)
+    result = State(action_result, {})
     return result
 
 def is_hypotesis_subset(hypotesis: State, parametrized_state: Dict[str, Set[GroundedPredicate]]):
@@ -287,15 +289,18 @@ def expand_hypotesis(hypotesis: State, parametrized_state: Dict[str, Set[Grounde
     for h in new_hypotesis:
         new_ub_element = None
         if hypotesis.state_predicates is not None:
-            new_ub_element = hypotesis.copy()
-            if new_ub_element.state_predicates.get(h.name) is None:
-                new_ub_element.state_predicates[h.name] = set()
-            new_ub_element.state_predicates[h.name].add(h)
+            element = {}
+            for predicate_name, predicates in hypotesis.state_predicates.items():
+                element[predicate_name] = predicates
+            if element.get(h.name) is None:
+                element[h.name] = set()
+            element[h.name].add(h)
+            new_ub_element = State(element, {})
         else:
             singleton_hypotesis = set()
             singleton_hypotesis.add(h)
             ub_element_predicate = {h.name: singleton_hypotesis}
-            new_ub_element = State(ub_element_predicate, None)
+            new_ub_element = State(ub_element_predicate, {})
         
         result.append(new_ub_element)
     
@@ -341,12 +346,6 @@ def get_parametrized_substate_fixed(substate: Dict[str, Set[GroundedPredicate]],
                     # In teoria non dovrebbe mai succedere se substate è stato filtrato correttamente
                     raise ValueError("Errore logico: Impossibile trovare mappatura per un oggetto filtrato.")
 
-
-            # VECCHIO LOGICA NON FUNZIONANTE:
-            # for param, ground in predicate.object_mapping.items():
-            #     # Questo fallisce con ripetizioni come 'c' in on(c, c)
-            #     obj_mapping[param] = parameters_pairing[ground] 
-
             grounded = GroundedPredicate(predicate_name, predicate_signature, obj_mapping, predicate.is_positive)
             parametrized_substate[predicate_name].add(grounded)
     
@@ -372,12 +371,11 @@ def update_preconds_ub(state: State, action: Action, action_parameters: List[str
     Returns:
         A list of refined precondition hypotheses, which represents the updated upper bound of preconditions.
     """
-
     # Step 1
     substate: Dict[str, Set[GroundedPredicate]] = get_involved_parameters_substate(state, action_parameters)
     # Step 2
     parametrized_substate: Dict[str, Set[GroundedPredicate]] = get_parametrized_substate(substate, action, action_parameters, domain)
-    
+
     # Step 3
     new_action_space_ub = action_space_ub.copy()
     for hypotesis in action_space_ub:
@@ -424,7 +422,7 @@ def effect_union(state: State, next: State, action: Action, action_parameters: L
         state_predicates = {}
         for predicate_name in action_space_lb.state_predicates:
             state_predicates[predicate_name] = action_space_lb.state_predicates[predicate_name].union(parametrized_substate[predicate_name])
-        result = State(state_predicates, None)
+        result = State(state_predicates, {})
     
     return result
 
