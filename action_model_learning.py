@@ -12,11 +12,17 @@ debug = True
 
 if __name__ == '__main__':
     
-    dataset_path = 'domains/blocksworld/dataset_01.csv' 
-    domain_path = 'domains/blocksworld/domain.pddl'
-    problem_path = 'domains/blocksworld/problem_01.pddl'
-    sound_model_path = 'domains/blocksworld/sound_domain_01.pddl'
-    complete_model_path = 'domains/blocksworld/complete_domain_01.pddl'
+    #dataset_path = 'domains/blocksworld/dataset_01.csv' 
+    #domain_path = 'domains/blocksworld/domain.pddl'
+    #problem_path = 'domains/blocksworld/problem_01.pddl'
+    #sound_model_path = 'domains/blocksworld/sound_domain_01.pddl'
+    #complete_model_path = 'domains/blocksworld/complete_domain_01.pddl'
+    dataset_path = 'domains/delivery/dataset_00.csv' 
+    domain_path = 'domains/delivery/domain.pddl'
+    problem_path = 'domains/delivery/problem_00.pddl'
+    sound_model_path = 'domains/delivery/sound_domain_00.pddl'
+    complete_model_path = 'domains/delivery/complete_domain_00.pddl'
+
 
     dataset = DatasetReader(domain_path).load_dataset(dataset_path)
     domain = DomainParser(domain_path).parse_domain()
