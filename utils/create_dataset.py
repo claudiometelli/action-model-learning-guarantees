@@ -7,9 +7,11 @@ from unified_planning.shortcuts import *
 
 get_environment().credits_stream = None
 
-domain_path = 'domains/blocksworld/domain.pddl'
-problem_path = 'domains/blocksworld/problem_01.pddl'
-output_filename = 'domains/blocksworld/dataset_01.csv'
+domain_name = 'grocery'
+
+domain_path = f'domains/{domain_name}/domain.pddl'
+problem_path = f'domains/{domain_name}/problem_00.pddl'
+output_filename = f'domains/{domain_name}/dataset_00.csv'
 
 csv_headers = ['state', 'action', 'action_parameters', 'result', 'next_state']
 reader = PDDLReader()

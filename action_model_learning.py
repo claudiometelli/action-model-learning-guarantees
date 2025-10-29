@@ -2,24 +2,33 @@ from pddl_plus_parser.models.pddl_state import State
 
 from pddl_plus_parser.lisp_parsers.domain_parser import DomainParser
 from pddl_plus_parser.lisp_parsers.problem_parser import ProblemParser
+from pddl_plus_parser.exporters.domain_exporter import DomainExporter as Exporter
 
 from utils.dataset_reader import DatasetReader
+from utils.domain_exporter import DomainExporter
 from utils.aml_utils import state_to_str, get_action_space, action_intersection, update_preconds_ub, effect_union
 
+debug = True
 
 if __name__ == '__main__':
-    
-    dataset_path = 'domains/blocksworld/dataset_01.csv' 
-    domain_path = 'domains/blocksworld/domain.pddl'
-    problem_path = 'domains/blocksworld/problem_01.pddl'
+
+    domain_name = 'grocery'
+
+    domain_path = f'domains/{domain_name}/domain.pddl'
+    problem_path = f'domains/{domain_name}/problem_00.pddl'
+    dataset_path = f'domains/{domain_name}/dataset_00.csv'
+
+    sound_model_path = f'domains/{domain_name}/sound_domain_00.pddl'
+    complete_model_path = f'domains/{domain_name}/complete_domain_00.pddl'
 
     dataset = DatasetReader(domain_path).load_dataset(dataset_path)
     domain = DomainParser(domain_path).parse_domain()
     problem = ProblemParser(problem_path, domain).parse_problem()
 
-    print(f'DOMAIN PREDICATES: {[predicate_name for predicate_name in domain.predicates]}')
-    print(f'DOMAIN ACTIONS: {[action_name for action_name in domain.actions]}')
-    print(f'PROBLEM OBJECTS: {[problem_obj for problem_obj in problem.objects]}')
+    if debug:
+        print(f'DOMAIN PREDICATES: {[predicate_name for predicate_name in domain.predicates]}')
+        print(f'DOMAIN ACTIONS: {[action_name for action_name in domain.actions]}')
+        print(f'PROBLEM OBJECTS: {[problem_obj for problem_obj in problem.objects]}')
 
 
     lower_preconds = {}
@@ -79,11 +88,25 @@ if __name__ == '__main__':
                 domain
             )
     
-    for action_name in domain.actions:
-        print(f"\n{'='*60}\nACTION ANALYSIS FOR ACTION: {action_name}\n{'='*60}")
-        print(f"{'='*40}\n PRECONDITIONS LOWER BOUND: {action_name}\n{'='*40}\n{state_to_str(lower_preconds[action_name])}")
-        print(f"{'='*40}\n PRECONDITIONS UPPER BOUND: {action_name}\n{'='*40}")
-        for hypotesis in upper_preconds[action_name]:
-            print(f"{state_to_str(hypotesis)}\n{'-'*40}")
-        print(f"{'='*40}\n EFFECTS LOWER BOUND: {action_name}\n{'='*40}\n{state_to_str(lower_effects[action_name])}")
-        print(f"{'='*40}\n EFFECTS UPPER BOUND: {action_name}\n{'='*40}\n{state_to_str(upper_effects[action_name])}")
+    if debug:
+        for action_name in domain.actions:
+            print(f"\n{'='*60}\nACTION ANALYSIS FOR ACTION: {action_name}\n{'='*60}")
+            print(f"{'='*40}\n PRECONDITIONS LOWER BOUND: {action_name}\n{'='*40}\n{state_to_str(lower_preconds[action_name])}")
+            print(f"{'='*40}\n PRECONDITIONS UPPER BOUND: {action_name}\n{'='*40}")
+            for hypotesis in upper_preconds[action_name]:
+                print(f"{state_to_str(hypotesis)}\n{'-'*40}")
+            print(f"{'='*40}\n EFFECTS LOWER BOUND: {action_name}\n{'='*40}\n{state_to_str(lower_effects[action_name])}")
+            print(f"{'='*40}\n EFFECTS UPPER BOUND: {action_name}\n{'='*40}\n{state_to_str(upper_effects[action_name])}")
+
+    domain_exporter = DomainExporter(
+        lower_preconds=lower_preconds,
+        upper_preconds=upper_preconds,
+        lower_effects=lower_effects,
+        upper_effects=upper_effects,
+        previous_domain=domain
+    )
+    sound_domain = domain_exporter.get_sound_model()        
+    complete_domain = domain_exporter.get_complete_model()
+
+    Exporter().export_domain(sound_domain, sound_model_path)
+    Exporter().export_domain(complete_domain, complete_model_path)

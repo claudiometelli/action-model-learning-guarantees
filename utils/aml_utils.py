@@ -97,7 +97,29 @@ def get_literals_space(domain: Domain, problem: Problem) -> State:
         predicates[predicate_name] = grounded_predicates
     # Return the literal space as a State object
     result = State(predicates, {})
+    return 
+
+def check_type(obj_mapping: Dict[str, str], predicate: Predicate, action: Action) -> bool:
+    # per ogni value dell'obj mapping, prendo il tipo della value dalla azione, e verifico che esso sia compatibile con il tipo nella signature del predicato
+    result = True
+    
+    for predicate_symbol, action_symbol in obj_mapping.items():
+
+        predicate_symbol_type = predicate.signature[predicate_symbol]
+        action_symbol_type = action.signature[action_symbol]
+        
+        if predicate_symbol_type.parent is None or predicate_symbol_type == action_symbol_type:
+            continue
+
+        parent_type = action_symbol_type.parent
+        while parent_type is not None and parent_type != predicate_symbol_type:
+            parent_type = parent_type.parent
+        if parent_type is None:
+            result = False
+            break
+
     return result
+    
 
 
 def get_action_space(domain: Domain, action: str) -> State:
@@ -125,10 +147,12 @@ def get_action_space(domain: Domain, action: str) -> State:
         for action_params_combination in itertool_product(action_parameters, repeat=len(predicate.signature)):
             # Apply mapping associating ordered predicate parameter names with action parameter names
             obj_mapping = {p: v for p, v in zip(sorted_params, action_params_combination)}
-            true_predicate = GroundedPredicate(predicate_name, predicate.signature, obj_mapping, True)
-            false_predicate = GroundedPredicate(predicate_name, predicate.signature, obj_mapping, False)
-            predicate_set.add(true_predicate)
-            predicate_set.add(false_predicate)
+            # if parameter combination is acceptable due to PDDL types, add GroundedPredicate
+            if check_type(obj_mapping, predicate, domain.actions[action]):
+                true_predicate = GroundedPredicate(predicate_name, predicate.signature, obj_mapping, True)
+                false_predicate = GroundedPredicate(predicate_name, predicate.signature, obj_mapping, False)
+                predicate_set.add(true_predicate)
+                predicate_set.add(false_predicate)
         action_space[predicate_name] = predicate_set
     
     # Return the action space as a State object
@@ -192,8 +216,8 @@ def get_parametrized_substate(
     
     for predicate_name, predicates in substate.items():
         parametrized_substate[predicate_name] = set()
-
         predicate_signature = domain.predicates[predicate_name].signature
+        
         for predicate in predicates:
             obj_mapping = {}
             for param, ground in predicate.object_mapping.items():
