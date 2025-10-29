@@ -12,7 +12,7 @@ debug = True
 
 if __name__ == '__main__':
 
-    domain_name = 'grocery'
+    domain_name = 'gardenworld'
 
     domain_path = f'domains/{domain_name}/domain.pddl'
     problem_path = f'domains/{domain_name}/problem_00.pddl'

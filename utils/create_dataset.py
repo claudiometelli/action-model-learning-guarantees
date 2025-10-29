@@ -7,7 +7,7 @@ from unified_planning.shortcuts import *
 
 get_environment().credits_stream = None
 
-domain_name = 'grocery'
+domain_name = 'gardenworld'
 
 domain_path = f'domains/{domain_name}/domain.pddl'
 problem_path = f'domains/{domain_name}/problem_00.pddl'
