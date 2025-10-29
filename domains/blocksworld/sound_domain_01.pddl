@@ -1,5 +1,9 @@
 (define (domain blocksworld)
+<<<<<<< HEAD
 (:requirements :typing :strips)
+=======
+(:requirements :strips :typing)
+>>>>>>> origin/main
 (:types 	block table - object
 )
 
