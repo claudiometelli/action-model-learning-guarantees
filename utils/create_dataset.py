@@ -21,6 +21,7 @@ with OneshotPlanner(name='pyperplan') as planner:
     result = planner.solve(problem)
 
 plan = None
+
 if result is not None and result.plan is not None:
     plan = result.plan
     print(result)
@@ -30,9 +31,24 @@ dataset = []
 positive_examples_per_state = 0
 negative_examples_per_state = 2
 
-# Attualmente il codice fa schifo, è un mix mal riuscito di flessibilità e non so cosa
-# Questo codice sarà da modularizzare meglio e scegliere una metodologia diversa da quella dell'articolo
-# per ora starà così
+"""
+Possibili nuove implementazioni:
+
+- Genero il piano e lo eseguo, facendo x mosse negative ad ogni passo.
+    Poi creo un ciclo del tipo (azione1, azione2, azione3, ecc.) ed eseguirle qualora possibile,
+    anche con parametri casuali: l'importante è eseguire tutte le azioni possibili (ecco perchè il ciclo)
+    e restringere i bound.
+
+- [TESI] Cambiare l'algoritmo di base ed utilizzare un algoritmo online:
+    a partire dallo stato iniziale non seguo il piano,
+    ma eseguo l'azione che penso mi dia maggiori probabilità di arrivare a copirire lo spazio intero.
+    Ha senso non eseguire il piano a livello pratico, essendo che teoricamente non dovrei conoscere
+    precondizioni ed effetti.
+    In questo modo azioni e precondizioni non sono mai conosciuti.
+    L'algoritmo va eseguito online, cioè ad ogni azione eseguita si modificano i bound e si migliora la conoscenza.
+    Che l'azione che si va ad eseguire sia possibile o meno, è sconosciuto, ed a seconda dell'effetto si verifica e si stringono i bound
+    Devo continuare ad eseguire il ciclo fino ad una determinata condizione o convergenza.
+"""
 
 with SequentialSimulator(problem) as simulator:
     current_state = simulator.get_initial_state()

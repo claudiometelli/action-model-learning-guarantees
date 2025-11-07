@@ -1,36 +1,93 @@
-from pddl_plus_parser.models.pddl_state import State
+import random
+import itertools
+from unified_planning.io import PDDLReader
+from unified_planning.shortcuts import *
 
-from pddl_plus_parser.lisp_parsers.domain_parser import DomainParser
-from pddl_plus_parser.lisp_parsers.problem_parser import ProblemParser
-from pddl_plus_parser.exporters.domain_exporter import DomainExporter as Exporter
+get_environment().credits_stream = None
 
-from utils.dataset_reader import DatasetReader
-from utils.domain_exporter import DomainExporter
-from utils.aml_utils import state_to_str, get_action_space, action_intersection, update_preconds_ub, effect_union, check_type
+domain_name = 'blocksworld'
 
-debug = False
+domain_path = f'domains/{domain_name}/domain.pddl'
+problem_path = f'domains/{domain_name}/problem_00.pddl'
+output_filename = f'domains/{domain_name}/dataset_00.csv'
 
-if __name__ == '__main__':
+reader = PDDLReader()
+problem = reader.parse_problem(domain_path, problem_path)
 
-    domain_name = 'grocery'
+with OneshotPlanner(name='pyperplan') as planner:
+    result = planner.solve(problem)
 
-    domain_path = f'domains/{domain_name}/domain.pddl'
-    problem_path = f'domains/{domain_name}/problem_00.pddl'
-    dataset_path = f'domains/{domain_name}/dataset_00.csv'
+plan = None
+if result is not None and result.plan is not None:
+    plan = result.plan
+    print(result)
+    print(f'\n{'='*20}\n')
 
-    sound_model_path = f'domains/{domain_name}/sound_domain_00.pddl'
-    complete_model_path = f'domains/{domain_name}/complete_domain_00.pddl'
+dataset = []
 
-    dataset = DatasetReader(domain_path).load_dataset(dataset_path)
-    domain = DomainParser(domain_path).parse_domain()
-    problem = ProblemParser(problem_path, domain).parse_problem()
+with SequentialSimulator(problem) as simulator:
+    current_state = simulator.get_initial_state()
 
-    lower_preconds = {}
-    upper_preconds = {}
-    lower_effects = {}
-    upper_effects = {}
-    for action_name in domain.actions:
-        lower_preconds[action_name] = get_action_space(domain, action_name)
-        upper_preconds[action_name] = [State(None, None)]
-        lower_effects[action_name] = State(None, None)
-        upper_effects[action_name] = get_action_space(domain, action_name)
+    for plan_action in plan.actions:
+        action_param_choices = {}
+    
+        for action in problem.actions:
+            possible_params = []
+            
+            for param in action.parameters:
+                possible_params.append(problem.objects(param.type))
+
+            possible_combinations = list(itertools.product(*possible_params))
+            random.shuffle(possible_combinations)
+            action_param_choices[action] = {'index': 0, 'params': possible_combinations}
+
+        positive_examples = []
+        negative_examples = []
+        exit_condition = False
+        i = 0
+
+        while not exit_condition:
+            random_action = list(action_param_choices.keys())[random.randint(0, len(action_param_choices)-1)]
+            random_combo = action_param_choices[random_action]['params'][action_param_choices[random_action]['index']]
+
+            if simulator.is_applicable(current_state, random_action, random_combo):
+                if len(positive_examples) < positive_examples_per_state:
+                    positive_examples.append((current_state, random_action, random_combo, True, None))
+            else:
+                if len(negative_examples) < negative_examples_per_state:
+                    negative_examples.append((current_state, random_action, random_combo, False, None))
+            
+            if len(positive_examples) == positive_examples_per_state and len(negative_examples) == negative_examples_per_state:
+                exit_condition = True
+            
+            action_param_choices[random_action]['index'] += 1
+            if action_param_choices[random_action]['index'] == len(action_param_choices[random_action]['params']):
+                del action_param_choices[random_action]
+            if len(action_param_choices) == 0:
+                exit_condition = True
+
+            i += 1
+
+        # Se qualcosa non torna è perchè ho mischiato un po' di logiche essendo che mi pesa il culo
+        # TODO fixare
+        # found_index = -1
+        # for index, example in enumerate(positive_examples):
+        #     if plan_action.action.name == example[1].name and str(plan_action.actual_parameters) == str(example[2]):
+        #         found_index = index
+        
+        # if found_index == -1:
+        #     plan_example = (current_state, plan_action.action, plan_action.actual_parameters, True)
+        #     positive_examples.append(plan_example)
+        #     found_index = len(positive_examples) - 1
+
+        next_state = simulator.apply(current_state, plan_action.action, plan_action.actual_parameters)
+        for fact, value in current_state._values.items():
+            if next_state._values.get(fact) is None:
+                next_state._values[fact] = value
+        plan_example = (current_state, plan_action.action, plan_action.actual_parameters, True, next_state)
+        positive_examples.append(plan_example)
+
+        dataset.extend(positive_examples)
+        dataset.extend(negative_examples)
+        
+        current_state = next_state

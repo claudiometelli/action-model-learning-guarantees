@@ -1,4 +1,5 @@
 from itertools import product as itertool_product
+from itertools import combinations as itertool_combinations
 from typing import Dict, List, Set, Tuple
 
 from pddl_plus_parser.models.pddl_domain import Domain
@@ -294,7 +295,8 @@ def is_hypotesis_subset(hypotesis: State, parametrized_state: Dict[str, Set[Grou
         return True
     is_subset = True
     for predicate_name, predicates in hypotesis.state_predicates.items():
-        if not predicates.issubset(parametrized_state[predicate_name]):
+        parametrized_params = parametrized_state.get(predicate_name)
+        if parametrized_params is None or not predicates.issubset(parametrized_params):
             is_subset = False
             break
     return is_subset
@@ -449,6 +451,69 @@ def effect_union(state: State, next: State, action: Action, action_parameters: L
         result = State(state_predicates, {})
     
     return result
+
+
+def reduce_upper_bound(action_space_ub: List[State]):
+    if len(action_space_ub) in [0, 1]:
+        return action_space_ub
+
+    supersets = [False] * len(action_space_ub)
+
+    for i in range(len(action_space_ub)):
+        if not supersets[i]:
+            current = action_space_ub[i]
+            for j in range(len(action_space_ub)):
+                if not supersets[j] and i != j:
+                    checker = action_space_ub[j]
+                    if is_hypotesis_subset(current, checker.state_predicates):
+                        # checker non serve
+                        supersets[j] = True
+
+    result = []
+    for i in range(len(supersets)):
+        if not supersets[i]:
+            result.append(action_space_ub[i])
+    
+    return result
+
+def copy_state(state: State):
+    if state.state_predicates is None:
+        return None
+    state_predicates_dict: Dict[str, Set[GroundedPredicate]] = {}
+    for predicate_name, predicates in state.state_predicates.items():
+        state_predicates_dict[predicate_name] = set()
+        state_predicates_dict[predicate_name].update(predicates)
+    return State(state_predicates_dict, None)
+
+
+def get_effect_space(effect_space_lb: State, effect_space_ub: State) -> List[State]:
+
+    effect_space: List[State] = []
+    effect_space_diff: Set[GroundedPredicate] = set()
+
+    for predicate_name, predicates in effect_space_ub.state_predicates.items():
+        if effect_space_lb.state_predicates.get(predicate_name) is None:
+            effect_space_diff.update(predicates)
+            continue
+        for predicate in predicates:
+            if predicate not in effect_space_lb.state_predicates[predicate_name]:
+                effect_space_diff.add(predicate)
+
+    for i in range(1, len(effect_space_diff) + 1):
+        combinations = list(itertool_combinations(effect_space_diff, i))
+        for combo in combinations:
+            effect_hypotesis = copy_state(effect_space_lb)
+            for predicate in combo:
+                if effect_hypotesis.state_predicates.get(predicate.name) is None:
+                    effect_hypotesis.state_predicates[predicate.name] = set()
+                effect_hypotesis.state_predicates[predicate.name].add(predicate)
+            effect_space.append(effect_hypotesis)
+        
+    return effect_space
+    
+    
+    
+
 
 
 

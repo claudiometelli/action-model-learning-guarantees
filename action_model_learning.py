@@ -6,13 +6,13 @@ from pddl_plus_parser.exporters.domain_exporter import DomainExporter as Exporte
 
 from utils.dataset_reader import DatasetReader
 from utils.domain_exporter import DomainExporter
-from utils.aml_utils import state_to_str, get_action_space, action_intersection, update_preconds_ub, effect_union
+from utils.aml_utils import state_to_str, get_action_space, action_intersection, update_preconds_ub, effect_union, reduce_upper_bound, get_effect_space
 
 debug = True
 
 if __name__ == '__main__':
 
-    domain_name = 'zeno'
+    domain_name = 'blocksworld'
 
     domain_path = f'domains/{domain_name}/domain.pddl'
     problem_path = f'domains/{domain_name}/problem_00.pddl'
@@ -98,6 +98,25 @@ if __name__ == '__main__':
             print(f"{'='*40}\n EFFECTS LOWER BOUND: {action_name}\n{'='*40}\n{state_to_str(lower_effects[action_name])}")
             print(f"{'='*40}\n EFFECTS UPPER BOUND: {action_name}\n{'='*40}\n{state_to_str(upper_effects[action_name])}")
 
+    # if debug:
+    #     effect_space = {}
+    #     for action_name in domain.actions:
+    #         print(f"{'='*40}\n PRECONDITIONS UPPER BOUND: {action_name}\n{'='*40}")
+    #         for hypotesis in upper_preconds[action_name]:
+    #             print(f"{state_to_str(hypotesis)}\n{'-'*40}")
+    #         upper_preconds[action_name] = reduce_upper_bound(upper_preconds[action_name])
+    #         print(f"{'='*40}\n PRECONDITIONS UPPER BOUND AFTER REDUCE: {action_name}\n{'='*40}")
+    #         for hypotesis in upper_preconds[action_name]:
+    #             print(f"{state_to_str(hypotesis)}\n{'-'*40}")
+    #         print(f"{'='*40}\n EFFECTS LOWER BOUND: {action_name}\n{'='*40}\n{state_to_str(lower_effects[action_name])}")
+    #         print(f"{'='*40}\n EFFECTS UPPER BOUND: {action_name}\n{'='*40}\n{state_to_str(upper_effects[action_name])}")
+    #         print(f"{'='*40}\n ENTIRE EFFECT SPACE: {action_name}\n{'='*40}")
+    #         effect_space[action_name] = get_effect_space(lower_effects[action_name], upper_effects[action_name])
+    #         for hypotesis in effect_space[action_name]:
+    #             print(f"{state_to_str(hypotesis)}\n{'-'*40}")
+            
+            
+
     domain_exporter = DomainExporter(
         lower_preconds=lower_preconds,
         upper_preconds=upper_preconds,
@@ -105,8 +124,9 @@ if __name__ == '__main__':
         upper_effects=upper_effects,
         previous_domain=domain
     )
+
     sound_domain = domain_exporter.get_sound_model()        
     complete_domain = domain_exporter.get_complete_model()
 
-    Exporter().export_domain(sound_domain, sound_model_path)
-    Exporter().export_domain(complete_domain, complete_model_path)
+    # Exporter().export_domain(sound_domain, sound_model_path)
+    # Exporter().export_domain(complete_domain, complete_model_path)

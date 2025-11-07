@@ -116,9 +116,5 @@ class DomainExporter:
 
                 new_domain.actions[action_name].discrete_effects = complete_effects
 
-            print(f'Action: {action_name}')
-            for effect in new_domain.actions[action_name].discrete_effects:
-                print(f'- {effect}')
-
         return new_domain
                 
