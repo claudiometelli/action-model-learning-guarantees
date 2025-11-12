@@ -13,8 +13,8 @@ from utils.domain_exporter import DomainExporter
 from utils.aml_utils import state_to_str, get_action_space, action_intersection, update_preconds_ub, effect_union, reduce_upper_bound, get_effect_space
 
 DEBUG = False
-DOMAIN_NAME: str = 'blocksworld'
-PROBLEM_INDEX: str = '01'
+DOMAIN_NAME: str = 'zeno'
+PROBLEM_INDEX: str = '00'
 
 def main() -> None:
 

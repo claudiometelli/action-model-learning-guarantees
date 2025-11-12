@@ -454,22 +454,36 @@ def effect_union(state: State, next: State, action: Action, action_parameters: L
 
 
 def reduce_upper_bound(action_space_ub: List[State]):
+    """
+    Reduces the upper bound set of possible preconditions by removing any hypothesis 
+    that is a proper superset of another hypothesis in the list.
+    This leaves only the most generic hypotheses.
+    Most generic hypotesis are subsets of other hypotesis.
+
+    Args:
+        action_space_ub: The upper bound of preconditions.
+
+    Returns:
+        A list of refined precondition hypotheses, which represents the updated upper bound of preconditions.
+    """
+    # Quick exit for lists with 0 or 1 element, as no comparison is needed.
     if len(action_space_ub) in [0, 1]:
         return action_space_ub
-
+    result = []
+    # Initialize a boolean list to track which hypotheses are supersets.
     supersets = [False] * len(action_space_ub)
 
     for i in range(len(action_space_ub)):
+        # If the current hypothesis is already marked as a superset hypotesis, it is skippable 
         if not supersets[i]:
             current = action_space_ub[i]
+            # Compare with all other hypotesis
             for j in range(len(action_space_ub)):
-                if not supersets[j] and i != j:
-                    checker = action_space_ub[j]
-                    if is_hypotesis_subset(current, checker.state_predicates):
-                        # checker non serve
-                        supersets[j] = True
+                # Supersets already marked will not be considered
+                if not supersets[j] and i != j and is_hypotesis_subset(current, action_space_ub[j].state_predicates):
+                    supersets[j] = True
 
-    result = []
+    # If the hypotesis is not a superset, keep the result
     for i in range(len(supersets)):
         if not supersets[i]:
             result.append(action_space_ub[i])

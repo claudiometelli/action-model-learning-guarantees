@@ -10,7 +10,8 @@ from unified_planning.shortcuts import *
 
 get_environment().credits_stream = None
 
-DOMAIN_NAME: str = 'grocery'
+PLANNER_NAME = 'pyperplan'
+DOMAIN_NAME: str = 'zeno'
 PROBLEM_INDEX: str = '00'
 
 def get_all_possible_grounded_actions(problem: Problem) -> Dict[Action, List[Tuple[Object]]]:
@@ -240,9 +241,7 @@ def get_negative_examples(
         if len(result) >= n_examples:
             break
         
-        instantiated_action = ActionInstance(random_action, random_grounding)
-        possible_next_state = simulator.apply(current_state, instantiated_action)
-        if possible_next_state is None:
+        if not simulator._is_applicable(current_state, random_action, random_grounding):
             negative_example: Tuple[State, Action, Tuple[Object], bool, State] = (
                 current_state,
                 random_action,
@@ -341,6 +340,9 @@ def main():
             for possible_action, possible_groundings in grounded_actions.items():
                 for possible_grounding in possible_groundings:
                     # Simulate the action's effect and get next state if the action is applicable, otherwise skip
+                    if not simulator._is_applicable(current_state, possible_action, possible_grounding):
+                        continue
+    
                     instantiated_action = ActionInstance(possible_action, possible_grounding)
                     possible_next_state = simulator.apply(current_state, instantiated_action)
                     if possible_next_state is None:
@@ -374,10 +376,12 @@ def main():
                     if value is not None:
                         new_problem.set_initial_value(fluent_exp, value)
                 # Run the planner to get the next step towards the goal
-                with OneshotPlanner(name='pyperplan') as planner:
+                with OneshotPlanner(name=PLANNER_NAME) as planner:
                     result = planner.solve(new_problem)
                 if result is not None and result.plan is not None:
                     next_action = result.plan.actions[0]
+                else:
+                    print('Error: there is no applicable action at this point')
                 # Extract the action and grounding from the ActionInstance
                 best_action = next_action.action
                 best_grounding = tuple([param.object() for param in next_action.actual_parameters])
@@ -431,7 +435,7 @@ def main():
                 if value is not None:
                     new_problem.set_initial_value(fluent_exp, value)
             # Resolve
-            with OneshotPlanner(name='pyperplan') as planner:
+            with OneshotPlanner(name=PLANNER_NAME) as planner:
                 result = planner.solve(new_problem)
 
             if result is not None and result.plan is not None:

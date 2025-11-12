@@ -1,5 +1,5 @@
 (define (domain blocksworld)
-(:requirements :typing :strips)
+(:requirements :strips :typing)
 (:types 	block table - object
 )
 
