@@ -10,8 +10,8 @@ from unified_planning.shortcuts import *
 
 get_environment().credits_stream = None
 
-DOMAIN_NAME: str = 'blocksworld'
-PROBLEM_INDEX: str = '01'
+DOMAIN_NAME: str = 'grocery'
+PROBLEM_INDEX: str = '00'
 
 def get_all_possible_grounded_actions(problem: Problem) -> Dict[Action, List[Tuple[Object]]]:
     """
