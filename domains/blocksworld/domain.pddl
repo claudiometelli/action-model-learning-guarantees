@@ -16,7 +16,7 @@
                    (holding ?ob1)))
   (:action put-down
              :parameters (?ob - block ?t - table)
-             :precondition (holding ?ob)
+             :precondition (and (holding ?ob))
              :effect
              (and (not (holding ?ob))
                    (clear ?ob)
