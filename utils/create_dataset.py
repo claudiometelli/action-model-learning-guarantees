@@ -12,7 +12,7 @@ get_environment().credits_stream = None
 
 PLANNER_NAME = 'pyperplan'
 DOMAIN_NAME: str = 'zeno'
-PROBLEM_INDEX: str = '00'
+PROBLEM_INDEX: str = '01'
 
 def get_all_possible_grounded_actions(problem: Problem) -> Dict[Action, List[Tuple[Object]]]:
     """

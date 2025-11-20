@@ -1,5 +1,5 @@
 (define (domain grocery)
-(:requirements :typing :strips)
+(:requirements :strips :typing)
 (:types 	agent product_item compartment scale - object
 )
 
@@ -76,7 +76,7 @@
 	(not (holding-right ?a ?p))
 	(not (left-hand-free ?a))
 	(not (ready-to-weigh ?p))
-	(not (right-hand-free ?a))
+	(right-hand-free ?a)
 	(scale-at ?s ?c))
 	:effect       (and (left-hand-free ?a)
 		(not (holding-left ?a ?p))

@@ -16,7 +16,7 @@ from utils.model_evaluator import ModelEvaluator
 DEBUG = False
 PRINT_CHARTS = True
 DOMAIN_NAME: str = 'zeno'
-PROBLEM_INDEX: str = '00'
+PROBLEM_INDEX: str = '01'
 
 def main() -> None:
 

@@ -24,7 +24,7 @@
 	:parameters   (?g - gardener ?t - tool)
 	:precondition (or (and (holding ?g ?t))
 	(and (not (free-hands ?g))))
-	:effect       (and (free-hands ?g) 
+	:effect       (and (not (holding ?g ?t)) 
 		 
 		))
 
@@ -32,7 +32,7 @@
 	:parameters   (?g - gardener ?t - tool)
 	:precondition (or (and (holding ?g ?t))
 	(and (not (free-hands ?g))))
-	:effect       (and (not (free-hands ?g)) 
+	:effect       (and (holding ?g ?t) 
 		 
 		))
 
@@ -40,7 +40,7 @@
 	:parameters   (?g - gardener ?t - tool)
 	:precondition (or (and (holding ?g ?t))
 	(and (not (free-hands ?g))))
-	:effect       (and (holding ?g ?t) 
+	:effect       (and (not (free-hands ?g)) 
 		 
 		))
 
@@ -48,7 +48,7 @@
 	:parameters   (?g - gardener ?t - tool)
 	:precondition (or (and (holding ?g ?t))
 	(and (not (free-hands ?g))))
-	:effect       (and (not (holding ?g ?t)) 
+	:effect       (and (free-hands ?g) 
 		 
 		))
 
@@ -56,8 +56,8 @@
 	:parameters   (?g - gardener ?t - tool)
 	:precondition (or (and (holding ?g ?t))
 	(and (not (free-hands ?g))))
-	:effect       (and (free-hands ?g)
-		(not (free-hands ?g)) 
+	:effect       (and (holding ?g ?t)
+		(not (holding ?g ?t)) 
 		 
 		))
 
@@ -65,8 +65,8 @@
 	:parameters   (?g - gardener ?t - tool)
 	:precondition (or (and (holding ?g ?t))
 	(and (not (free-hands ?g))))
-	:effect       (and (free-hands ?g)
-		(holding ?g ?t) 
+	:effect       (and (not (free-hands ?g))
+		(not (holding ?g ?t)) 
 		 
 		))
 
@@ -92,8 +92,8 @@
 	:parameters   (?g - gardener ?t - tool)
 	:precondition (or (and (holding ?g ?t))
 	(and (not (free-hands ?g))))
-	:effect       (and (not (free-hands ?g))
-		(not (holding ?g ?t)) 
+	:effect       (and (free-hands ?g)
+		(holding ?g ?t) 
 		 
 		))
 
@@ -101,8 +101,8 @@
 	:parameters   (?g - gardener ?t - tool)
 	:precondition (or (and (holding ?g ?t))
 	(and (not (free-hands ?g))))
-	:effect       (and (holding ?g ?t)
-		(not (holding ?g ?t)) 
+	:effect       (and (free-hands ?g)
+		(not (free-hands ?g)) 
 		 
 		))
 
@@ -110,9 +110,9 @@
 	:parameters   (?g - gardener ?t - tool)
 	:precondition (or (and (holding ?g ?t))
 	(and (not (free-hands ?g))))
-	:effect       (and (free-hands ?g)
-		(holding ?g ?t)
-		(not (free-hands ?g)) 
+	:effect       (and (holding ?g ?t)
+		(not (free-hands ?g))
+		(not (holding ?g ?t)) 
 		 
 		))
 
@@ -121,7 +121,7 @@
 	:precondition (or (and (holding ?g ?t))
 	(and (not (free-hands ?g))))
 	:effect       (and (free-hands ?g)
-		(not (free-hands ?g))
+		(holding ?g ?t)
 		(not (holding ?g ?t)) 
 		 
 		))
@@ -131,7 +131,7 @@
 	:precondition (or (and (holding ?g ?t))
 	(and (not (free-hands ?g))))
 	:effect       (and (free-hands ?g)
-		(holding ?g ?t)
+		(not (free-hands ?g))
 		(not (holding ?g ?t)) 
 		 
 		))
@@ -140,9 +140,9 @@
 	:parameters   (?g - gardener ?t - tool)
 	:precondition (or (and (holding ?g ?t))
 	(and (not (free-hands ?g))))
-	:effect       (and (holding ?g ?t)
-		(not (free-hands ?g))
-		(not (holding ?g ?t)) 
+	:effect       (and (free-hands ?g)
+		(holding ?g ?t)
+		(not (free-hands ?g)) 
 		 
 		))
 
@@ -196,7 +196,7 @@
 	(not (has-fruit ?p))))
 	:effect       (and (grown ?p)
 		(not (dry ?p))
-		(not (has-fruit ?p))
+		(not (harvested ?p))
 		(watered ?p) 
 		 
 		))
@@ -226,7 +226,7 @@
 	(not (has-fruit ?p))))
 	:effect       (and (grown ?p)
 		(not (dry ?p))
-		(not (harvested ?p))
+		(not (has-fruit ?p))
 		(watered ?p) 
 		 
 		))
@@ -242,7 +242,7 @@
 	:effect       (and (grown ?p)
 		(holding ?g ?t)
 		(not (dry ?p))
-		(not (has-fruit ?p))
+		(not (harvested ?p))
 		(watered ?p) 
 		 
 		))
@@ -274,7 +274,7 @@
 	:effect       (and (grown ?p)
 		(holding ?g ?t)
 		(not (dry ?p))
-		(not (harvested ?p))
+		(not (has-fruit ?p))
 		(watered ?p) 
 		 
 		))
@@ -290,7 +290,7 @@
 	:effect       (and (grown ?p)
 		(not (dry ?p))
 		(not (free-hands ?g))
-		(not (has-fruit ?p))
+		(not (harvested ?p))
 		(watered ?p) 
 		 
 		))
@@ -322,7 +322,7 @@
 	:effect       (and (grown ?p)
 		(not (dry ?p))
 		(not (free-hands ?g))
-		(not (harvested ?p))
+		(not (has-fruit ?p))
 		(watered ?p) 
 		 
 		))
@@ -339,7 +339,7 @@
 		(holding ?g ?t)
 		(not (dry ?p))
 		(not (free-hands ?g))
-		(not (has-fruit ?p))
+		(not (harvested ?p))
 		(watered ?p) 
 		 
 		))
@@ -373,7 +373,7 @@
 		(holding ?g ?t)
 		(not (dry ?p))
 		(not (free-hands ?g))
-		(not (harvested ?p))
+		(not (has-fruit ?p))
 		(watered ?p) 
 		 
 		))
@@ -435,7 +435,7 @@
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
 	:effect       (and (has-fruit ?p)
-		(not (watered ?p)) 
+		(holding ?g ?t) 
 		 
 		))
 
@@ -443,8 +443,8 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (has-fruit ?p)
-		(holding ?g ?t) 
+	:effect       (and (grown ?p)
+		(has-fruit ?p) 
 		 
 		))
 
@@ -453,7 +453,7 @@
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
 	:effect       (and (has-fruit ?p)
-		(not (dry ?p)) 
+		(not (watered ?p)) 
 		 
 		))
 
@@ -470,22 +470,12 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p) 
+	:effect       (and (has-fruit ?p)
+		(not (dry ?p)) 
 		 
 		))
 
 (:action prune-plant_7
-	:parameters   (?g - gardener ?t - tool ?p - plant)
-	:precondition (or (and (grown ?p))
-	(and (not (has-fruit ?p))))
-	:effect       (and (has-fruit ?p)
-		(not (harvested ?p))
-		(not (watered ?p)) 
-		 
-		))
-
-(:action prune-plant_8
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
@@ -495,13 +485,23 @@
 		 
 		))
 
+(:action prune-plant_8
+	:parameters   (?g - gardener ?t - tool ?p - plant)
+	:precondition (or (and (grown ?p))
+	(and (not (has-fruit ?p))))
+	:effect       (and (grown ?p)
+		(has-fruit ?p)
+		(not (harvested ?p)) 
+		 
+		))
+
 (:action prune-plant_9
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
 	:effect       (and (has-fruit ?p)
-		(not (dry ?p))
-		(not (harvested ?p)) 
+		(not (harvested ?p))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -519,8 +519,8 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p)
+	:effect       (and (has-fruit ?p)
+		(not (dry ?p))
 		(not (harvested ?p)) 
 		 
 		))
@@ -529,9 +529,9 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (has-fruit ?p)
-		(holding ?g ?t)
-		(not (watered ?p)) 
+	:effect       (and (grown ?p)
+		(has-fruit ?p)
+		(holding ?g ?t) 
 		 
 		))
 
@@ -540,7 +540,7 @@
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
 	:effect       (and (has-fruit ?p)
-		(not (dry ?p))
+		(holding ?g ?t)
 		(not (watered ?p)) 
 		 
 		))
@@ -550,22 +550,12 @@
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
 	:effect       (and (has-fruit ?p)
-		(not (free-hands ?g))
-		(not (watered ?p)) 
+		(holding ?g ?t)
+		(not (free-hands ?g)) 
 		 
 		))
 
 (:action prune-plant_15
-	:parameters   (?g - gardener ?t - tool ?p - plant)
-	:precondition (or (and (grown ?p))
-	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p)
-		(not (watered ?p)) 
-		 
-		))
-
-(:action prune-plant_16
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
@@ -575,12 +565,22 @@
 		 
 		))
 
+(:action prune-plant_16
+	:parameters   (?g - gardener ?t - tool ?p - plant)
+	:precondition (or (and (grown ?p))
+	(and (not (has-fruit ?p))))
+	:effect       (and (grown ?p)
+		(has-fruit ?p)
+		(not (watered ?p)) 
+		 
+		))
+
 (:action prune-plant_17
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (has-fruit ?p)
-		(holding ?g ?t)
+	:effect       (and (grown ?p)
+		(has-fruit ?p)
 		(not (free-hands ?g)) 
 		 
 		))
@@ -591,7 +591,7 @@
 	(and (not (has-fruit ?p))))
 	:effect       (and (grown ?p)
 		(has-fruit ?p)
-		(holding ?g ?t) 
+		(not (dry ?p)) 
 		 
 		))
 
@@ -600,8 +600,8 @@
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
 	:effect       (and (has-fruit ?p)
-		(not (dry ?p))
-		(not (free-hands ?g)) 
+		(not (free-hands ?g))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -609,9 +609,9 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p)
-		(not (dry ?p)) 
+	:effect       (and (has-fruit ?p)
+		(not (dry ?p))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -619,8 +619,8 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p)
+	:effect       (and (has-fruit ?p)
+		(not (dry ?p))
 		(not (free-hands ?g)) 
 		 
 		))
@@ -629,10 +629,10 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (has-fruit ?p)
+	:effect       (and (grown ?p)
+		(has-fruit ?p)
 		(holding ?g ?t)
-		(not (harvested ?p))
-		(not (watered ?p)) 
+		(not (harvested ?p)) 
 		 
 		))
 
@@ -641,7 +641,7 @@
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
 	:effect       (and (has-fruit ?p)
-		(not (dry ?p))
+		(holding ?g ?t)
 		(not (harvested ?p))
 		(not (watered ?p)) 
 		 
@@ -652,24 +652,13 @@
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
 	:effect       (and (has-fruit ?p)
+		(holding ?g ?t)
 		(not (free-hands ?g))
-		(not (harvested ?p))
-		(not (watered ?p)) 
+		(not (harvested ?p)) 
 		 
 		))
 
 (:action prune-plant_25
-	:parameters   (?g - gardener ?t - tool ?p - plant)
-	:precondition (or (and (grown ?p))
-	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p)
-		(not (harvested ?p))
-		(not (watered ?p)) 
-		 
-		))
-
-(:action prune-plant_26
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
@@ -680,12 +669,23 @@
 		 
 		))
 
+(:action prune-plant_26
+	:parameters   (?g - gardener ?t - tool ?p - plant)
+	:precondition (or (and (grown ?p))
+	(and (not (has-fruit ?p))))
+	:effect       (and (grown ?p)
+		(has-fruit ?p)
+		(not (harvested ?p))
+		(not (watered ?p)) 
+		 
+		))
+
 (:action prune-plant_27
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (has-fruit ?p)
-		(holding ?g ?t)
+	:effect       (and (grown ?p)
+		(has-fruit ?p)
 		(not (free-hands ?g))
 		(not (harvested ?p)) 
 		 
@@ -697,7 +697,7 @@
 	(and (not (has-fruit ?p))))
 	:effect       (and (grown ?p)
 		(has-fruit ?p)
-		(holding ?g ?t)
+		(not (dry ?p))
 		(not (harvested ?p)) 
 		 
 		))
@@ -707,9 +707,9 @@
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
 	:effect       (and (has-fruit ?p)
-		(not (dry ?p))
 		(not (free-hands ?g))
-		(not (harvested ?p)) 
+		(not (harvested ?p))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -717,10 +717,10 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p)
+	:effect       (and (has-fruit ?p)
 		(not (dry ?p))
-		(not (harvested ?p)) 
+		(not (harvested ?p))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -728,8 +728,8 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p)
+	:effect       (and (has-fruit ?p)
+		(not (dry ?p))
 		(not (free-hands ?g))
 		(not (harvested ?p)) 
 		 
@@ -739,9 +739,9 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (has-fruit ?p)
+	:effect       (and (grown ?p)
+		(has-fruit ?p)
 		(holding ?g ?t)
-		(not (dry ?p))
 		(not (watered ?p)) 
 		 
 		))
@@ -750,10 +750,10 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (has-fruit ?p)
+	:effect       (and (grown ?p)
+		(has-fruit ?p)
 		(holding ?g ?t)
-		(not (free-hands ?g))
-		(not (watered ?p)) 
+		(not (free-hands ?g)) 
 		 
 		))
 
@@ -764,7 +764,7 @@
 	:effect       (and (grown ?p)
 		(has-fruit ?p)
 		(holding ?g ?t)
-		(not (watered ?p)) 
+		(not (dry ?p)) 
 		 
 		))
 
@@ -773,7 +773,7 @@
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
 	:effect       (and (has-fruit ?p)
-		(not (dry ?p))
+		(holding ?g ?t)
 		(not (free-hands ?g))
 		(not (watered ?p)) 
 		 
@@ -783,8 +783,8 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p)
+	:effect       (and (has-fruit ?p)
+		(holding ?g ?t)
 		(not (dry ?p))
 		(not (watered ?p)) 
 		 
@@ -794,10 +794,10 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p)
-		(not (free-hands ?g))
-		(not (watered ?p)) 
+	:effect       (and (has-fruit ?p)
+		(holding ?g ?t)
+		(not (dry ?p))
+		(not (free-hands ?g)) 
 		 
 		))
 
@@ -805,10 +805,10 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (has-fruit ?p)
-		(holding ?g ?t)
-		(not (dry ?p))
-		(not (free-hands ?g)) 
+	:effect       (and (grown ?p)
+		(has-fruit ?p)
+		(not (free-hands ?g))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -818,8 +818,8 @@
 	(and (not (has-fruit ?p))))
 	:effect       (and (grown ?p)
 		(has-fruit ?p)
-		(holding ?g ?t)
-		(not (dry ?p)) 
+		(not (dry ?p))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -829,7 +829,7 @@
 	(and (not (has-fruit ?p))))
 	:effect       (and (grown ?p)
 		(has-fruit ?p)
-		(holding ?g ?t)
+		(not (dry ?p))
 		(not (free-hands ?g)) 
 		 
 		))
@@ -838,10 +838,10 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p)
+	:effect       (and (has-fruit ?p)
 		(not (dry ?p))
-		(not (free-hands ?g)) 
+		(not (free-hands ?g))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -849,9 +849,9 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (has-fruit ?p)
+	:effect       (and (grown ?p)
+		(has-fruit ?p)
 		(holding ?g ?t)
-		(not (dry ?p))
 		(not (harvested ?p))
 		(not (watered ?p)) 
 		 
@@ -861,11 +861,11 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (has-fruit ?p)
+	:effect       (and (grown ?p)
+		(has-fruit ?p)
 		(holding ?g ?t)
 		(not (free-hands ?g))
-		(not (harvested ?p))
-		(not (watered ?p)) 
+		(not (harvested ?p)) 
 		 
 		))
 
@@ -876,8 +876,8 @@
 	:effect       (and (grown ?p)
 		(has-fruit ?p)
 		(holding ?g ?t)
-		(not (harvested ?p))
-		(not (watered ?p)) 
+		(not (dry ?p))
+		(not (harvested ?p)) 
 		 
 		))
 
@@ -886,7 +886,7 @@
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
 	:effect       (and (has-fruit ?p)
-		(not (dry ?p))
+		(holding ?g ?t)
 		(not (free-hands ?g))
 		(not (harvested ?p))
 		(not (watered ?p)) 
@@ -897,8 +897,8 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p)
+	:effect       (and (has-fruit ?p)
+		(holding ?g ?t)
 		(not (dry ?p))
 		(not (harvested ?p))
 		(not (watered ?p)) 
@@ -909,11 +909,11 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p)
+	:effect       (and (has-fruit ?p)
+		(holding ?g ?t)
+		(not (dry ?p))
 		(not (free-hands ?g))
-		(not (harvested ?p))
-		(not (watered ?p)) 
+		(not (harvested ?p)) 
 		 
 		))
 
@@ -921,11 +921,11 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (has-fruit ?p)
-		(holding ?g ?t)
-		(not (dry ?p))
+	:effect       (and (grown ?p)
+		(has-fruit ?p)
 		(not (free-hands ?g))
-		(not (harvested ?p)) 
+		(not (harvested ?p))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -935,9 +935,9 @@
 	(and (not (has-fruit ?p))))
 	:effect       (and (grown ?p)
 		(has-fruit ?p)
-		(holding ?g ?t)
 		(not (dry ?p))
-		(not (harvested ?p)) 
+		(not (harvested ?p))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -947,7 +947,7 @@
 	(and (not (has-fruit ?p))))
 	:effect       (and (grown ?p)
 		(has-fruit ?p)
-		(holding ?g ?t)
+		(not (dry ?p))
 		(not (free-hands ?g))
 		(not (harvested ?p)) 
 		 
@@ -957,11 +957,11 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p)
+	:effect       (and (has-fruit ?p)
 		(not (dry ?p))
 		(not (free-hands ?g))
-		(not (harvested ?p)) 
+		(not (harvested ?p))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -969,9 +969,9 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (has-fruit ?p)
+	:effect       (and (grown ?p)
+		(has-fruit ?p)
 		(holding ?g ?t)
-		(not (dry ?p))
 		(not (free-hands ?g))
 		(not (watered ?p)) 
 		 
@@ -996,8 +996,8 @@
 	:effect       (and (grown ?p)
 		(has-fruit ?p)
 		(holding ?g ?t)
-		(not (free-hands ?g))
-		(not (watered ?p)) 
+		(not (dry ?p))
+		(not (free-hands ?g)) 
 		 
 		))
 
@@ -1005,8 +1005,8 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p)
+	:effect       (and (has-fruit ?p)
+		(holding ?g ?t)
 		(not (dry ?p))
 		(not (free-hands ?g))
 		(not (watered ?p)) 
@@ -1019,9 +1019,9 @@
 	(and (not (has-fruit ?p))))
 	:effect       (and (grown ?p)
 		(has-fruit ?p)
-		(holding ?g ?t)
 		(not (dry ?p))
-		(not (free-hands ?g)) 
+		(not (free-hands ?g))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -1029,9 +1029,9 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (has-fruit ?p)
+	:effect       (and (grown ?p)
+		(has-fruit ?p)
 		(holding ?g ?t)
-		(not (dry ?p))
 		(not (free-hands ?g))
 		(not (harvested ?p))
 		(not (watered ?p)) 
@@ -1058,9 +1058,9 @@
 	:effect       (and (grown ?p)
 		(has-fruit ?p)
 		(holding ?g ?t)
+		(not (dry ?p))
 		(not (free-hands ?g))
-		(not (harvested ?p))
-		(not (watered ?p)) 
+		(not (harvested ?p)) 
 		 
 		))
 
@@ -1068,8 +1068,8 @@
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (grown ?p))
 	(and (not (has-fruit ?p))))
-	:effect       (and (grown ?p)
-		(has-fruit ?p)
+	:effect       (and (has-fruit ?p)
+		(holding ?g ?t)
 		(not (dry ?p))
 		(not (free-hands ?g))
 		(not (harvested ?p))
@@ -1083,10 +1083,10 @@
 	(and (not (has-fruit ?p))))
 	:effect       (and (grown ?p)
 		(has-fruit ?p)
-		(holding ?g ?t)
 		(not (dry ?p))
 		(not (free-hands ?g))
-		(not (harvested ?p)) 
+		(not (harvested ?p))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -1133,8 +1133,8 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(not (has-fruit ?p))
-		(not (watered ?p)) 
+		(not (grown ?p))
+		(not (has-fruit ?p)) 
 		 
 		))
 
@@ -1144,7 +1144,7 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(not (grown ?p))
+		(holding ?g ?t)
 		(not (has-fruit ?p)) 
 		 
 		))
@@ -1155,23 +1155,12 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(holding ?g ?t)
-		(not (has-fruit ?p)) 
+		(not (has-fruit ?p))
+		(not (watered ?p)) 
 		 
 		))
 
 (:action harvest_4
-	:parameters   (?g - gardener ?t - tool ?p - plant)
-	:precondition (or (and (has-fruit ?p))
-	(and (holding ?g ?t))
-	(and (not (grown ?p))))
-	:effect       (and (harvested ?p)
-		(not (dry ?p))
-		(not (has-fruit ?p)) 
-		 
-		))
-
-(:action harvest_5
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (has-fruit ?p))
 	(and (holding ?g ?t))
@@ -1182,15 +1171,26 @@
 		 
 		))
 
+(:action harvest_5
+	:parameters   (?g - gardener ?t - tool ?p - plant)
+	:precondition (or (and (has-fruit ?p))
+	(and (holding ?g ?t))
+	(and (not (grown ?p))))
+	:effect       (and (harvested ?p)
+		(not (dry ?p))
+		(not (has-fruit ?p)) 
+		 
+		))
+
 (:action harvest_6
 	:parameters   (?g - gardener ?t - tool ?p - plant)
 	:precondition (or (and (has-fruit ?p))
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
+		(holding ?g ?t)
 		(not (grown ?p))
-		(not (has-fruit ?p))
-		(not (watered ?p)) 
+		(not (has-fruit ?p)) 
 		 
 		))
 
@@ -1200,7 +1200,7 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(holding ?g ?t)
+		(not (grown ?p))
 		(not (has-fruit ?p))
 		(not (watered ?p)) 
 		 
@@ -1212,9 +1212,9 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(not (dry ?p))
-		(not (has-fruit ?p))
-		(not (watered ?p)) 
+		(not (free-hands ?g))
+		(not (grown ?p))
+		(not (has-fruit ?p)) 
 		 
 		))
 
@@ -1224,9 +1224,9 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(not (free-hands ?g))
-		(not (has-fruit ?p))
-		(not (watered ?p)) 
+		(not (dry ?p))
+		(not (grown ?p))
+		(not (has-fruit ?p)) 
 		 
 		))
 
@@ -1237,8 +1237,8 @@
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
 		(holding ?g ?t)
-		(not (grown ?p))
-		(not (has-fruit ?p)) 
+		(not (has-fruit ?p))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -1248,8 +1248,8 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(not (dry ?p))
-		(not (grown ?p))
+		(holding ?g ?t)
+		(not (free-hands ?g))
 		(not (has-fruit ?p)) 
 		 
 		))
@@ -1260,8 +1260,8 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(not (free-hands ?g))
-		(not (grown ?p))
+		(holding ?g ?t)
+		(not (dry ?p))
 		(not (has-fruit ?p)) 
 		 
 		))
@@ -1272,9 +1272,9 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(holding ?g ?t)
-		(not (dry ?p))
-		(not (has-fruit ?p)) 
+		(not (free-hands ?g))
+		(not (has-fruit ?p))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -1284,9 +1284,9 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(holding ?g ?t)
-		(not (free-hands ?g))
-		(not (has-fruit ?p)) 
+		(not (dry ?p))
+		(not (has-fruit ?p))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -1321,10 +1321,10 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(not (dry ?p))
+		(holding ?g ?t)
+		(not (free-hands ?g))
 		(not (grown ?p))
-		(not (has-fruit ?p))
-		(not (watered ?p)) 
+		(not (has-fruit ?p)) 
 		 
 		))
 
@@ -1334,10 +1334,10 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(not (free-hands ?g))
+		(holding ?g ?t)
+		(not (dry ?p))
 		(not (grown ?p))
-		(not (has-fruit ?p))
-		(not (watered ?p)) 
+		(not (has-fruit ?p)) 
 		 
 		))
 
@@ -1347,8 +1347,8 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(holding ?g ?t)
-		(not (dry ?p))
+		(not (free-hands ?g))
+		(not (grown ?p))
 		(not (has-fruit ?p))
 		(not (watered ?p)) 
 		 
@@ -1360,8 +1360,8 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(holding ?g ?t)
-		(not (free-hands ?g))
+		(not (dry ?p))
+		(not (grown ?p))
 		(not (has-fruit ?p))
 		(not (watered ?p)) 
 		 
@@ -1375,8 +1375,8 @@
 	:effect       (and (harvested ?p)
 		(not (dry ?p))
 		(not (free-hands ?g))
-		(not (has-fruit ?p))
-		(not (watered ?p)) 
+		(not (grown ?p))
+		(not (has-fruit ?p)) 
 		 
 		))
 
@@ -1387,9 +1387,9 @@
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
 		(holding ?g ?t)
-		(not (dry ?p))
-		(not (grown ?p))
-		(not (has-fruit ?p)) 
+		(not (free-hands ?g))
+		(not (has-fruit ?p))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -1400,9 +1400,9 @@
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
 		(holding ?g ?t)
-		(not (free-hands ?g))
-		(not (grown ?p))
-		(not (has-fruit ?p)) 
+		(not (dry ?p))
+		(not (has-fruit ?p))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -1412,9 +1412,9 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
+		(holding ?g ?t)
 		(not (dry ?p))
 		(not (free-hands ?g))
-		(not (grown ?p))
 		(not (has-fruit ?p)) 
 		 
 		))
@@ -1425,10 +1425,10 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(holding ?g ?t)
 		(not (dry ?p))
 		(not (free-hands ?g))
-		(not (has-fruit ?p)) 
+		(not (has-fruit ?p))
+		(not (watered ?p)) 
 		 
 		))
 
@@ -1439,7 +1439,7 @@
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
 		(holding ?g ?t)
-		(not (dry ?p))
+		(not (free-hands ?g))
 		(not (grown ?p))
 		(not (has-fruit ?p))
 		(not (watered ?p)) 
@@ -1453,7 +1453,7 @@
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
 		(holding ?g ?t)
-		(not (free-hands ?g))
+		(not (dry ?p))
 		(not (grown ?p))
 		(not (has-fruit ?p))
 		(not (watered ?p)) 
@@ -1466,11 +1466,11 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
+		(holding ?g ?t)
 		(not (dry ?p))
 		(not (free-hands ?g))
 		(not (grown ?p))
-		(not (has-fruit ?p))
-		(not (watered ?p)) 
+		(not (has-fruit ?p)) 
 		 
 		))
 
@@ -1480,9 +1480,9 @@
 	(and (holding ?g ?t))
 	(and (not (grown ?p))))
 	:effect       (and (harvested ?p)
-		(holding ?g ?t)
 		(not (dry ?p))
 		(not (free-hands ?g))
+		(not (grown ?p))
 		(not (has-fruit ?p))
 		(not (watered ?p)) 
 		 
@@ -1497,8 +1497,8 @@
 		(holding ?g ?t)
 		(not (dry ?p))
 		(not (free-hands ?g))
-		(not (grown ?p))
-		(not (has-fruit ?p)) 
+		(not (has-fruit ?p))
+		(not (watered ?p)) 
 		 
 		))
 
