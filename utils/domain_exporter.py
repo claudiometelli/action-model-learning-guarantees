@@ -1,8 +1,11 @@
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set
 from pddl_plus_parser.models.pddl_state import State
 from pddl_plus_parser.models.pddl_predicate import Predicate
+from pddl_plus_parser.models.pddl_action import Action
 from pddl_plus_parser.models.pddl_precondition import Precondition, CompoundPrecondition
 from pddl_plus_parser.models.pddl_domain import Domain
+
+from utils.aml_utils import AMLUtils
 
 class DomainExporter:
 
@@ -19,6 +22,7 @@ class DomainExporter:
         self.lower_effects = lower_effects
         self.upper_effects = upper_effects
         self.domain = previous_domain
+        self.utils = AMLUtils()
     
     def get_sound_model(self) -> Domain:
         new_domain = self.domain.shallow_copy()
@@ -59,11 +63,31 @@ class DomainExporter:
         new_domain = self.domain.shallow_copy()
 
         for action_name in self.domain.actions:
-            complete_effects: Set[Predicate] = set()
+            effect_space = self.utils.get_effect_space(self.lower_effects[action_name], self.upper_effects[action_name])
+            new_action_names = []
+            for index, effect_hypotesis in enumerate(effect_space):
+                if effect_hypotesis.state_predicates is None:
+                    continue
+
+                complete_effects: Set[Predicate] = set()
+                for predicate_name, predicates in effect_hypotesis.state_predicates.items():
+                    for predicate in predicates:
+                        effect = {}
+                        for param in predicate.signature:
+                            effect[predicate.object_mapping[param]] = self.domain.actions[action_name].signature[predicate.object_mapping[param]]
+                        if len(effect) == len(predicate.signature):
+                            complete_effects.add(Predicate(predicate_name, effect, None, predicate.is_positive))
+                
+                new_action_name = f'{action_name}_{index}'
+                new_action_names.append(new_action_name)
+                new_domain.actions[new_action_name] = Action(new_action_name, self.domain.actions[action_name].signature)
+                new_domain.actions[new_action_name].discrete_effects = complete_effects
+
 
             if len(self.upper_preconds[action_name]) == 1:
-                complete_preconds: Set[Predicate] = set()
                 hypotesis = self.upper_preconds[action_name][0]
+                complete_preconds: Set[Predicate] = set()
+
                 if hypotesis.state_predicates is not None:
                     for predicate_name, predicates in hypotesis.state_predicates.items():
                         for predicate in predicates:
@@ -74,9 +98,9 @@ class DomainExporter:
                             # visto che il predicato non accetta due parametri uguali per sua struttura in libreria, il comportamento in questo caso è da definire
                             if len(preconds) == len(predicate.signature):
                                 complete_preconds.add(Predicate(predicate_name, preconds, None, predicate.is_positive))
-                    for precond in complete_preconds:
-                        new_domain.actions[action_name].preconditions.add_condition(precond)
-
+                    for new_action_name in new_action_names:
+                        for precond in complete_preconds:
+                            new_domain.actions[new_action_name].preconditions.add_condition(precond)
 
             else:
                 complete_preconds: CompoundPrecondition = CompoundPrecondition()
@@ -97,24 +121,10 @@ class DomainExporter:
                     
                     complete_preconds.add_condition(hypotesis_preconds)
                 
-                new_domain.actions[action_name].preconditions = complete_preconds
+                for new_action_name in new_action_names:
+                    new_domain.actions[new_action_name].preconditions = complete_preconds
 
-        # for action_name, action in new_domain.actions.items():
-        #     print(f'ACTION NAME: {action_name}')
-        #     for operand in action.preconditions.root.operands:
-        #         print(operand)
-
-
-            if self.upper_effects[action_name].state_predicates is not None:
-                for predicate_name, predicates in self.upper_effects[action_name].state_predicates.items():
-                    for predicate in predicates:
-                        effect = {}
-                        for param in predicate.signature:
-                            effect[predicate.object_mapping[param]] = self.domain.actions[action_name].signature[predicate.object_mapping[param]]
-                        if len(effect) == len(predicate.signature):
-                            complete_effects.add(Predicate(predicate_name, effect, None, predicate.is_positive))
-
-                new_domain.actions[action_name].discrete_effects = complete_effects
+            del new_domain.actions[action_name]
 
         return new_domain
                 

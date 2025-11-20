@@ -1,5 +1,5 @@
 (define (domain gardenworld)
-(:requirements :typing :strips)
+(:requirements :strips :typing)
 (:types 	plant tool gardener - object
 )
 

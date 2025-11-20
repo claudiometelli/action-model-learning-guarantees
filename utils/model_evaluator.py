@@ -37,7 +37,7 @@ class ModelEvaluator:
             result[action_name]['sound'] = total
         
         if print_chart:
-            self.print_sound_preconds_chart(result)
+            self.print_sound_data_chart(result)
 
         return result
     
@@ -142,7 +142,12 @@ class ModelEvaluator:
 
     def evaluate_complete_preconditions(self, print_chart=False):
         result = {}
-        for action_name, action in self.complete_domain.actions.items():
+        for action_name in self.real_domain.actions:
+            action = None
+            for complete_domain_action_name in self.complete_domain.actions:
+                if complete_domain_action_name.startswith(action_name):
+                    action = self.complete_domain.actions[complete_domain_action_name]
+            
             result[action_name] = {}
             precision, recall= 0, 0
 
@@ -168,9 +173,10 @@ class ModelEvaluator:
                     for predicate in real_domain_preconds:
                         if predicate not in and_predicates:
                             FN += 1
-
-                    precision += TP / (TP + FP)
-                    recall += TP / (TP + FN)
+                    if TP + FP != 0:
+                        precision += TP / (TP + FP)
+                    if TP + FN != 0:
+                        recall += TP / (TP + FN)
                 
                 precision /= len(action.preconditions.root.operands)
                 recall /= len(action.preconditions.root.operands)
@@ -186,35 +192,17 @@ class ModelEvaluator:
                 for predicate in real_domain_preconds:
                     if predicate not in [p[1] for p in action.preconditions]:
                         FN += 1
-
-                precision = TP / (TP + FP)
-                recall = TP / (TP + FN)
+                
+                if TP + FP != 0:
+                    precision = TP / (TP + FP)
+                if TP + FN != 0:
+                    recall = TP / (TP + FN)
             
             result[action_name]['precision'] = precision
             result[action_name]['recall'] = recall
 
         if print_chart:
             self.print_complete_preconditions_chart(result)
-
-        return result
-            
-
-    def evaluate_complete_effects(self, print_chart=False):
-        result = {}
-        for action_name, action in self.complete_domain.actions.items():
-            total, intersec = 0, 0
-            for effect in action.discrete_effects:
-                # Check if the hypothesized precondition is present in the real domain
-                if effect in self.real_domain.actions[action_name].discrete_effects:
-                    intersec += 1
-                total += 1
-            
-            result[action_name] = {}
-            result[action_name]['common'] = intersec
-            result[action_name]['sound'] = total
-        
-        if print_chart:
-            self.print_sound_data_chart(result, counting='effects')
 
         return result
     
@@ -242,7 +230,7 @@ class ModelEvaluator:
             x - width/2,
             precision_values, 
             width, 
-            label='Precisione', 
+            label='Precision', 
             color='#10b981', 
             edgecolor='black'
         )
@@ -256,8 +244,8 @@ class ModelEvaluator:
             edgecolor='black'
         )
 
-        ax.set_ylabel('Valore (0.0 - 1.0)')
-        ax.set_title('Precisione e Recall per Azione del Dominio Completo')
+        ax.set_ylabel('Precision / Recall')
+        ax.set_title('Precision and Recall per Action in Complete Domain')
         ax.set_xticks(x)
         ax.set_xticklabels(actions, rotation=45, ha="right")
         ax.legend()
@@ -281,5 +269,93 @@ class ModelEvaluator:
         fig.patch.set_linewidth(2)
         plt.show()
 
+    def evaluate_complete_effects(self, print_chart=False):
+        result = {}
+        for action_name in self.real_domain.actions:
+            action = None
+            max_index = 0
+            for complete_domain_action_name in self.complete_domain.actions:
+                if complete_domain_action_name.startswith(action_name):
+                    new_index = complete_domain_action_name[len(action_name)+1:]
+                    if new_index.isdigit() and int(new_index)>max_index:
+                        max_index = int(new_index)
+            action = self.complete_domain.actions[f'{action_name}_{max_index}']
+            total, intersec = 0, 0
+            for effect in action.discrete_effects:
+                # Check if the hypothesized precondition is present in the real domain
+                if effect in self.real_domain.actions[action_name].discrete_effects:
+                    intersec += 1
+                total += 1
+            
+            result[action_name] = {}
+            result[action_name]['common'] = intersec
+            result[action_name]['sound'] = total
+        
+        if print_chart:
+            self.print_complete_effects_chart(result)
 
+        return result
 
+    def print_complete_effects_chart(self, data: Dict[str, Dict[str, int]]):
+        """
+        Generate bar chart with real effect and sound effect for the two models
+
+        Args:
+            data (Dict[str, Dict[str, int]]): Dict with pre-calculated results
+        """
+
+        actions = list(data.keys())
+        common_counts = np.array([data[a]['common'] for a in actions])
+        sound_counts = np.array([data[a]['sound'] for a in actions])
+        non_common_counts = sound_counts - common_counts
+        
+        ratios = np.zeros(len(actions))
+        for i in range(len(actions)):
+            if sound_counts[i] > 0:
+                ratios[i] = (common_counts[i] / sound_counts[i]) * 100
+            else:
+                ratios[i] = 0
+
+        x = np.arange(len(actions))  
+        width = 0.5
+        fig, ax = plt.subplots(figsize=(10, 6))
+
+        rects1 = ax.bar(
+            x, 
+            common_counts, 
+            width, 
+            label=f'Common Effects', 
+            color='#107755'
+        )
+        rects2 = ax.bar(
+            x, 
+            non_common_counts, 
+            width, 
+            bottom=common_counts,
+            label='Complete Effects', 
+            color='#c91e1e'
+        )
+        
+        ax.set_ylabel(f'Effects Count')
+        ax.set_title('Complete Model Comparison')
+        ax.set_xticks(x)
+        ax.set_xticklabels(actions, rotation=45, ha='right')
+        ax.legend(loc='upper left')
+
+        for i, rect in enumerate(rects1):
+            height = sound_counts[i] 
+            percentage_text = f'{ratios[i]:.1f}%'
+            ax.annotate(
+                percentage_text,
+                xy=(rect.get_x() + rect.get_width() / 2, height),
+                xytext=(0, 3),
+                textcoords='offset points',
+                ha='center',
+                fontsize=9,
+                fontweight='bold'
+            )
+
+        max_height = max(sound_counts) if sound_counts.size > 0 else 1
+        ax.set_ylim(0, max_height * 1.2) 
+        fig.tight_layout()
+        plt.show()

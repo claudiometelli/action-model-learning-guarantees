@@ -527,27 +527,45 @@ class AMLUtils:
         effect_space_diff: Set[GroundedPredicate] = set()
         # Calculate the set difference between ub and lb
         # Iterate through all predicates in the upper bound
-        for predicate_name, predicates in effect_space_ub.state_predicates.items():
-            # Case 1: The predicate name exists only in ub, so all its grounded instances are considered
-            if effect_space_lb.state_predicates.get(predicate_name) is None:
+        if effect_space_lb.state_predicates is None:
+            for predicate_name, predicates in effect_space_ub.state_predicates.items():
                 effect_space_diff.update(predicates)
-                continue
-            # Case 2: The predicate name exists in both, check for individual grounded differences
-            for predicate in predicates:
-                if predicate not in effect_space_lb.state_predicates[predicate_name]:
-                    effect_space_diff.add(predicate)
-
+        else:
+            for predicate_name, predicates in effect_space_ub.state_predicates.items():
+                # Case 1: The predicate name exists only in ub, so all its grounded instances are considered
+                if effect_space_lb.state_predicates.get(predicate_name) is None:
+                    effect_space_diff.update(predicates)
+                    continue
+                # Case 2: The predicate name exists in both, check for individual grounded differences
+                for predicate in predicates:
+                    if predicate not in effect_space_lb.state_predicates[predicate_name]:
+                        # Skip predicates with repeated objects
+                        if len(predicate.signature) != len(set(predicate.object_mapping.values())):
+                            continue
+                        effect_space_diff.add(predicate)
+        
+        # If the two bounds correspond, return the lower bound
+        if len(effect_space_diff) == 0:
+            effect_space.append(effect_space_lb)
+            return effect_space
+        if effect_space_lb.state_predicates is not None:
+            effect_space.append(effect_space_lb)
+        
         # Generate hypothesis by combining the power set of differences
         for i in range(1, len(effect_space_diff) + 1):
             combinations = list(itertool_combinations(effect_space_diff, i))
             for combo in combinations:
-                effect_hypotesis = self.copy_state(effect_space_lb)
+                effect_hypotesis: State = None
+                if effect_space_lb.state_predicates is None:
+                    effect_hypotesis = State({}, None)
+                else:
+                    effect_hypotesis = self.copy_state(effect_space_lb)
                 for predicate in combo:
                     if effect_hypotesis.state_predicates.get(predicate.name) is None:
                         effect_hypotesis.state_predicates[predicate.name] = set()
                     effect_hypotesis.state_predicates[predicate.name].add(predicate)
                 effect_space.append(effect_hypotesis)
-            
+        
         return effect_space
     
     

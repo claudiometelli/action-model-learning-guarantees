@@ -15,8 +15,8 @@ from utils.model_evaluator import ModelEvaluator
 
 DEBUG = False
 PRINT_CHARTS = True
-DOMAIN_NAME: str = 'blocksworld'
-PROBLEM_INDEX: str = '01'
+DOMAIN_NAME: str = 'zeno'
+PROBLEM_INDEX: str = '00'
 
 def main() -> None:
 
@@ -123,9 +123,10 @@ def main() -> None:
     domain_exporter.export_domain(complete_domain, complete_model_path)
 
     model_evaluator = ModelEvaluator(domain, sound_domain, complete_domain)
-    model_evaluator.evaluate_complete_effects(print_chart=PRINT_CHARTS)
+    model_evaluator.evaluate_sound_preconditions(print_chart=PRINT_CHARTS)
+    model_evaluator.evaluate_sound_effects(print_chart=PRINT_CHARTS)
     model_evaluator.evaluate_complete_preconditions(print_chart=PRINT_CHARTS)
-    
+    model_evaluator.evaluate_complete_effects(print_chart=PRINT_CHARTS)
 
 if __name__ == '__main__':
     main()
