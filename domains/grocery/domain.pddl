@@ -64,6 +64,7 @@
         :effect (and
             (right-hand-free ?a)
             (not (holding-right ?a ?p))
+            (has-product ?c ?p)
             (ready-to-weigh ?p)
         )
     )
@@ -78,6 +79,7 @@
         :effect (and
             (left-hand-free ?a)
             (not (holding-left ?a ?p))
+            (has-product ?c ?p)
             (ready-to-weigh ?p)
         )
     )

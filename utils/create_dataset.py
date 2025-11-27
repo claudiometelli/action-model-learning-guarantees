@@ -10,8 +10,8 @@ from unified_planning.shortcuts import *
 
 get_environment().credits_stream = None
 
-PLANNER_NAME = 'pyperplan'
-DOMAIN_NAME: str = 'zeno'
+PLANNER_NAME: str = 'pyperplan'
+DOMAIN_NAME: str = 'grocery'
 PROBLEM_INDEX: str = '01'
 
 def get_all_possible_grounded_actions(problem: Problem) -> Dict[Action, List[Tuple[Object]]]:
@@ -20,7 +20,7 @@ def get_all_possible_grounded_actions(problem: Problem) -> Dict[Action, List[Tup
     respecting type constraints and ensuring parameters are unique.
 
     Args:
-        problem: The unified_planning.model.Problem object.
+        problem: the problem object.
 
     Returns:
         A dictionary mapping each symbolic Action to a list
@@ -473,3 +473,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+        

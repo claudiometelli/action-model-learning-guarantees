@@ -15,7 +15,7 @@ from utils.model_evaluator import ModelEvaluator
 
 DEBUG = False
 PRINT_CHARTS = True
-DOMAIN_NAME: str = 'zeno'
+DOMAIN_NAME: str = 'grocery'
 PROBLEM_INDEX: str = '01'
 
 def main() -> None:
