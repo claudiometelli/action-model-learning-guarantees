@@ -9,10 +9,13 @@ from unified_planning.plans.plan import ActionInstance
 from unified_planning.shortcuts import *
 
 get_environment().credits_stream = None
+PLAIN_PLANNING: str = 'plain'
+HEURISTIC_PLANNING: str = 'heuristic'
 
 PLANNER_NAME: str = 'pyperplan'
 DOMAIN_NAME: str = 'grocery'
 PROBLEM_INDEX: str = '01'
+PLANNING_MODE: str = PLAIN_PLANNING
 
 def get_all_possible_grounded_actions(problem: Problem) -> Dict[Action, List[Tuple[Object]]]:
     """
@@ -212,7 +215,7 @@ def get_negative_examples(
     simulator: SequentialSimulator,
     current_state: State,
     possible_grounded_actions: Dict[Action, List[Tuple[Object]]],
-    n_examples:int = 2 
+    n_examples: int = 2 
     ) -> List[Tuple[State, Action, Tuple[Object], bool, State]]:
     """
     Collects a selected number (n_examples) of negative examples for the given state
@@ -296,17 +299,7 @@ def write_dataset(
             writer.writerow(row)
 
 
-def main():
-    # Define paths for the PDDL domain, problem file and dataset output
-    domain_path: str = f'domains/{DOMAIN_NAME}/domain.pddl'
-    problem_path: str = f'domains/{DOMAIN_NAME}/problem_{PROBLEM_INDEX}.pddl'
-    output_filename: str = f'domains/{DOMAIN_NAME}/dataset_{PROBLEM_INDEX}.csv'
-
-    # Load the PDDL problem using Unified Planning's PDDLReader
-    reader: PDDLReader = PDDLReader()
-    problem: Problem = reader.parse_problem(domain_path, problem_path)
-
-    # List to store the collected examples in the dataset
+def heuristic_planning(problem: Problem) -> List[Tuple[State, Action, Tuple[Object], bool, State]]:
     dataset: List[Tuple[State, Action, Tuple[Object], bool, State]] = []
 
     with SequentialSimulator(problem) as simulator:
@@ -466,6 +459,58 @@ def main():
 
                     # Update current state
                     current_state = next_state
+    
+    return dataset
+
+def plain_planning(problem: Problem) -> List[Tuple[State, Action, Tuple[Object], bool, State]]:
+    dataset: List[Tuple[State, Action, Tuple[Object], bool, State]] = []
+    result = None
+    with OneshotPlanner(name=PLANNER_NAME) as planner:
+        result = planner.solve(problem)
+    
+    with SequentialSimulator(problem) as simulator:
+        current_state: State = simulator.get_initial_state()
+        grounded_actions: Dict[Action, List[Tuple[Object]]] = get_all_possible_grounded_actions(problem)
+        for action in result.plan.actions:
+            next_state = simulator.apply(current_state, action)
+            positive_example = (
+                current_state,
+                action.action,
+                action.actual_parameters,
+                True,
+                next_state
+            )
+            negative_examples = get_negative_examples(simulator, current_state, grounded_actions)
+            dataset.append(positive_example)
+            dataset.extend(negative_examples)
+
+            for fluent_exp, value in current_state._values.items():
+                if fluent_exp not in next_state._values:
+                    next_state._values[fluent_exp] = value
+            
+            current_state = next_state
+
+    return dataset
+
+def main():
+    # Define paths for the PDDL domain, problem file and dataset output
+    domain_path: str = f'domains/{DOMAIN_NAME}/domain.pddl'
+    problem_path: str = f'domains/{DOMAIN_NAME}/problem_{PROBLEM_INDEX}.pddl'
+    output_filename: str = f'domains/{DOMAIN_NAME}/dataset_{PROBLEM_INDEX}.csv'
+
+    # Load the PDDL problem using Unified Planning's PDDLReader
+    reader: PDDLReader = PDDLReader()
+    problem: Problem = reader.parse_problem(domain_path, problem_path)
+
+    # List to store the collected examples in the dataset
+    dataset: List[Tuple[State, Action, Tuple[Object], bool, State]] = []
+
+    # Use selected planning mode
+    planning_mode_mapping: Dict[str, function] = {
+        PLAIN_PLANNING: plain_planning,
+        HEURISTIC_PLANNING: heuristic_planning
+    }
+    dataset = planning_mode_mapping[PLANNING_MODE](problem)    
     
     # Write resulting dataset on file
     write_dataset(dataset, output_filename)
